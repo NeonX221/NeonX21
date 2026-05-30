@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon X Hunter</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #03a9f4; 
+            --fb-blue: #1877f2;
+            --bg-color: #e0f2f1; 
+            --text-color: #333;
+            --tab-active: #0288d1;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); }
+
+        /* HALAMAN LOGIN / DAFTAR */
+        #auth-section { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #f0f2f5; }
+        .auth-logo { font-size: 40px; font-weight: bold; color: var(--fb-blue); margin-bottom: 20px; text-align: center; }
+        .auth-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
+        .auth-card input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+        .auth-card button { width: 100%; padding: 12px; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer; color: white; }
+        .btn-login { background-color: var(--fb-blue); }
+        .btn-daftar { background-color: #42b72a; margin-top: 15px; }
+        .btn-kembali { background-color: #ccc; color: #333 !important; margin-top: 10px; }
+        .auth-divider { border-bottom: 1px solid #dadde1; margin: 20px 0; }
+
+        /* HALAMAN UTAMA */
+        #main-section { display: none; padding-bottom: 50px; }
+        .top-marquee { background-color: var(--tab-active); color: white; padding: 5px; font-size: 13px; font-weight: bold; }
+        
+        header { background-color: var(--primary-blue); padding: 10px 15px; display: flex; justify-content: flex-end; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .profile-circle { width: 40px; height: 40px; border-radius: 50%; background-color: white; color: var(--primary-blue); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; cursor: pointer; background-size: cover; background-position: center; }
+
+        nav { display: flex; justify-content: space-around; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .tab-btn { flex: 1; text-align: center; padding: 12px 0; font-size: 24px; cursor: pointer; position: relative; border-bottom: 3px solid transparent; }
+        .tab-btn.active { border-bottom: 3px solid var(--primary-blue); background-color: #f9f9f9; }
+        .red-dot { position: absolute; top: 8px; right: 35%; width: 10px; height: 10px; background-color: red; border-radius: 50%; display: none; }
+        
+        .tab-content { display: none; padding: 15px; max-width: 600px; margin: 0 auto; }
+        .tab-content.active { display: block; }
+
+        /* Postingan */
+        .post-trigger { background-color: white; height: 40px; border-radius: 20px; margin-bottom: 20px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; padding: 0 20px; color: #999; }
+        .post-box { display: none; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; position: relative; overflow: hidden; }
+        .post-box textarea { width: 100%; border: none; outline: none; resize: none; font-size: 16px; margin-bottom: 10px; min-height: 80px; }
+        .post-actions { display: flex; flex-direction: column; align-items: center; gap: 15px; border-top: 1px solid #eee; padding-top: 15px; }
+        #btn-post { background-color: #ccc; color: white; border: none; padding: 10px; width: 80%; border-radius: 20px; cursor: not-allowed; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        #btn-post.ready { background-color: var(--primary-blue); cursor: pointer; }
+
+        .scanner { position: absolute; top: -100%; left: 0; width: 100%; height: 50px; background: linear-gradient(to bottom, rgba(3, 169, 244, 0), rgba(3, 169, 244, 0.5)); border-bottom: 2px solid var(--primary-blue); display: none; z-index: 10; }
+        @keyframes scan { 0% { top: -10px; } 100% { top: 100%; } }
+
+        /* Feed */
+        .feed-post { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; transition: 0.5s; position: relative; text-align: left;}
+        .feed-header { display: flex; align-items: center; margin-bottom: 10px; position: relative; }
+        .feed-header .profile-circle { width: 35px; height: 35px; font-size: 16px; margin-right: 10px; }
+        .feed-img { width: 100%; border-radius: 5px; margin-top: 10px; }
+        .feed-actions { display: flex; justify-content: space-between; border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px; }
+        .feed-actions button { background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 14px; }
+        
+        /* Menu Titik Tiga */
+        .post-menu-btn { cursor: pointer; padding: 5px 10px; color: #777; }
+        .post-options { display: none; position: absolute; right: 0; top: 30px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.2); border-radius: 5px; z-index: 50; overflow: hidden; width: 150px; }
+        .post-options div { padding: 10px 15px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; color: #333;}
+        .post-options div:hover { background-color: #f1f1f1; }
+        .post-options .hapus-btn { color: red; }
+
+        /* Komentar */
+        .comment-section { display: none; margin-top: 10px; }
+        .comment-list { font-size: 13px; margin-top: 10px; background: #f1f1f1; padding: 8px 12px; border-radius: 10px; }
+
+        /* Modals */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 95%; max-width: 450px; text-align: center; max-height: 90vh; overflow-y: auto; }
+        .info-list { text-align: left; margin: 15px 0; font-size: 16px; line-height: 1.6; }
+        .btn-modal { padding: 10px; width: 100%; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer; font-weight: bold; color: white;}
+        .btn-foto { background-color: var(--primary-blue); }
+        .btn-logout { background-color: #f44336; }
+        .btn-close { background-color: #777; }
+
+        /* Sub-area lini masa di dalam profil */
+        .profile-timeline { border-top: 2px solid #ddd; margin-top: 15px; padding-top: 15px; }
+        .profile-timeline h4 { margin-bottom: 10px; text-align: left; color: #555; }
+
+        /* Typo Modal Khusus */
+        .typo-box { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 350px; text-align: center; }
+        .blink-red { color: red; font-size: 24px; font-weight: bold; animation: blink 0.8s infinite; margin-bottom: 10px;}
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .btn-edit { background: #ff9800; color: white; padding: 10px 20px; border: none; border-radius:5px; cursor: pointer; font-weight: bold;}
+        .btn-lanjut { background: var(--primary-blue); color: white; padding: 10px 20px; border: none; border-radius:5px; cursor: pointer; font-weight: bold;}
+    </style>
+</head>
+<body>
+
+    <div id="auth-section">
+        <div class="auth-logo">Neon X Hunter</div>
+        <div class="auth-card" id="login-form">
+            <input type="text" id="log-username" placeholder="Username">
+            <input type="password" id="log-password" placeholder="Kata Sandi">
+            <button class="btn-login" onclick="doLogin()">Login</button>
+            <div class="auth-divider"></div>
+            <button class="btn-daftar" onclick="toggleAuth('daftar')">Buat Akun Baru</button>
+        </div>
+        <div class="auth-card" id="register-form" style="display: none;">
+            <h3 style="margin-bottom: 15px; color: #333;">Pendaftaran Akun</h3>
+            <input type="text" id="reg-nama" placeholder="Nama">
+            <input type="text" id="reg-username" placeholder="Username">
+            <p id="err-username" style="color:red; font-size:12px; display:none; margin-top:-10px; margin-bottom:10px; text-align:left;">Username sudah digunakan!</p>
+            <input type="password" id="reg-password" placeholder="Kata sandi">
+            <input type="text" id="reg-kota" placeholder="Kota">
+            <input type="number" id="reg-umur" placeholder="Umur">
+            <button class="btn-daftar" onclick="doRegister()">DAFTAR</button>
+            <button class="btn-kembali" onclick="toggleAuth('login')">Kembali ke Login</button>
+        </div>
+    </div>
+
+    <div id="main-section">
+        <marquee class="top-marquee" behavior="scroll" direction="left">web ini masih dalam tahap pengembangan</marquee>
+        
+        <header>
+            <div class="profile-circle" id="user-profile" onclick="openProfileInfo()"></div>
+        </header>
+
+        <nav>
+            <div class="tab-btn active" onclick="switchTab('beranda', this)"><i class="fas fa-home" style="color: #ff7043;"></i></div>
+            <div class="tab-btn" onclick="switchTab('pertemanan', this)"><i class="fas fa-user" style="color: #1e88e5;"></i></div>
+            <div class="tab-btn" onclick="switchTab('add', this)"><i class="fas fa-handshake" style="color: #fbc02d;"></i><div class="red-dot" id="dot-add"></div></div>
+            <div class="tab-btn" onclick="switchTab('notifikasi', this)"><i class="fas fa-bell" style="color: #fbc02d;"></i><div class="red-dot" id="dot-notif"></div></div>
+        </nav>
+
+        <main>
+            <div id="beranda" class="tab-content active">
+                <div class="post-trigger" id="post-trigger" onclick="openPostForm()">Tulis sesuatu...</div>
+                <div class="post-box" id="post-box-area">
+                    <div class="scanner" id="post-scanner"></div>
+                    <textarea id="post-text" placeholder="Tulis sesuatu..."></textarea>
+                    <div class="post-actions">
+                        <input type="file" id="post-photo" accept="image/*" style="width: 100%;">
+                        <button id="btn-post" onclick="startPosting()">[ POSTING ]</button>
+                    </div>
+                </div>
+                <div id="feed-area"></div>
+            </div>
+
+            <div id="pertemanan" class="tab-content"><h3>Daftar Teman</h3><p>Belum ada teman.</p></div>
+            <div id="add" class="tab-content"><h3>Permintaan Pertemanan</h3><div id="request-list">Belum ada permintaan.</div></div>
+            <div id="notifikasi" class="tab-content">
+                <h3>Pemberitahuan</h3>
+                <ul id="notif-list" style="list-style: none;">
+                    <li id="empty-notif">Tidak ada pemberitahuan baru.</li>
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal-content">
+            <div class="profile-circle" id="modal-profile-pic" style="width: 80px; height: 80px; font-size: 30px; margin: 0 auto 10px auto;"></div>
+            <h2>Informasi Akun</h2>
+            <div class="info-list">
+                <strong>Nama:</strong> <span id="info-nama"></span><br>
+                <strong>Kota:</strong> <span id="info-kota"></span><br>
+                <strong>Umur:</strong> <span id="info-umur"></span> tahun
+            </div>
+            <label for="change-pic" class="btn-modal btn-foto" style="display: block; text-align: center;">Ganti Foto Profil</label>
+            <input type="file" id="change-pic" style="display: none;" accept="image/*" onchange="changeProfilePic(event)">
+            <button class="btn-modal btn-logout" onclick="logout()">Logout</button>
+            <button class="btn-modal btn-close" onclick="closeProfileInfo()">Tutup</button>
+            
+            <div class="profile-timeline">
+                <h4>Postingan Anda</h4>
+                <div id="my-posts-area">Belum ada postingan.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="view-profile-modal">
+        <div class="modal-content">
+            <div class="profile-circle" id="v-profile-pic" style="width: 80px; height: 80px; font-size: 30px; margin: 0 auto 10px auto;"></div>
+            <h2 id="v-nama">Profil Pengguna</h2>
+            <div class="info-list">
+                <strong>Kota:</strong> <span id="v-kota"></span><br>
+                <strong>Umur:</strong> <span id="v-umur"></span> tahun
+            </div>
+            <button class="btn-modal btn-close" onclick="document.getElementById('view-profile-modal').style.display='none'">Tutup</button>
+            
+            <div class="profile-timeline">
+                <h4 id="v-timeline-title">Postingan</h4>
+                <div id="v-posts-area">Belum ada postingan.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="typo-modal">
+        <div class="typo-box">
+            <div class="blink-red"><i class="fas fa-exclamation-triangle"></i> TYPO TERDETEKSI !</div>
+            <p style="font-size: 14px; margin-bottom: 10px;">Sistem mendeteksi kemungkinan salah ketik:</p>
+            <div id="typo-detail" style="background: #f1f1f1; padding: 10px; border-radius: 5px; margin-bottom: 20px; font-weight: bold; color: #d32f2f; white-space: pre-line;"></div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn-edit" onclick="cancelPost()">[EDIT]</button>
+                <button class="btn-lanjut" onclick="finishPosting()">[LANJUT]</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let usersDB = JSON.parse(localStorage.getItem('nx_usersDB')) || {};
+        let globalPosts = JSON.parse(localStorage.getItem('nx_globalPosts')) || [];
+        let activeUser = localStorage.getItem('nx_activeUser'); 
+        let tempPostData = {};
+
+        const kamusTypo = {
+            "aky": "aku", "ketiak": "ketika", "malak": "malah", "adlaah": "adalah", "yng": "yang", "dgn": "dengan", "tdk": "tidak"
+        };
+
+        function cekTypo(teks) {
+            let kataKasar = teks.toLowerCase().split(/\s+/);
+            let daftarTypoDitemukan = [];
+            for (let kata of kataKasar) {
+                let kataBersih = kata.replace(/[^a-z]/g, '');
+                if (kamusTypo[kataBersih]) {
+                    daftarTypoDitemukan.push(`"${kataBersih}" mungkin maksudnya "${kamusTypo[kataBersih]}"`);
+                }
+            }
+            return daftarTypoDitemukan.length > 0 ? daftarTypoDitemukan : null;
+        }
+
+        window.onload = function() {
+            if(activeUser && usersDB[activeUser]) {
+                setupUserUI();
+                renderFeed();
+            } else { 
+                document.getElementById('auth-section').style.display = 'flex'; 
+                document.getElementById('main-section').style.display = 'none'; 
+            }
+        };
+
+        function toggleAuth(mode) {
+            document.getElementById('login-form').style.display = mode === 'login' ? 'block' : 'none';
+            document.getElementById('register-form').style.display = mode === 'daftar' ? 'block' : 'none';
+        }
+
+        function doRegister() {
+            let nama = document.getElementById('reg-nama').value.trim(), user = document.getElementById('reg-username').value.trim().toLowerCase();
+            let pass = document.getElementById('reg-password').value, kota = document.getElementById('reg-kota').value, umur = document.getElementById('reg-umur').value;
+            if(!nama || !user || !pass || !kota || !umur) return alert("Semua kolom harus diisi!");
+            if(usersDB[user]) { document.getElementById('err-username').style.display = 'block'; return; }
+            
+            usersDB[user] = { nama: nama, password: pass, kota: kota, umur: umur, photo: null };
+            localStorage.setItem('nx_usersDB', JSON.stringify(usersDB));
+            activeUser = user; localStorage.setItem('nx_activeUser', activeUser);
+            alert("Pendaftaran berhasil! Anda langsung masuk."); setupUserUI(); renderFeed();
+        }
+
+        function doLogin() {
+            let user = document.getElementById('log-username').value.trim().toLowerCase(), pass = document.getElementById('log-password').value;
+            if(usersDB[user] && usersDB[user].password === pass) { 
+                activeUser = user; 
+                localStorage.setItem('nx_activeUser', activeUser); 
+                setupUserUI(); 
+                renderFeed();
+            } else alert("Username atau kata sandi salah!");
+        }
+
+        function logout() {
+            activeUser = null; localStorage.removeItem('nx_activeUser');
+            document.getElementById('profile-modal').style.display = 'none';
+            document.getElementById('main-section').style.display = 'none';
+            document.getElementById('auth-section').style.display = 'flex'; toggleAuth('login');
+        }
+
+        function setupUserUI() {
+            document.getElementById('auth-section').style.display = 'none'; document.getElementById('main-section').style.display = 'block';
+            let profileIcon = document.getElementById('user-profile');
+            if(usersDB[activeUser].photo) { profileIcon.innerText = ''; profileIcon.style.backgroundImage = `url(${usersDB[activeUser].photo})`; } 
+            else { profileIcon.style.backgroundImage = 'none'; profileIcon.innerText = activeUser.charAt(0).toUpperCase(); }
+        }
+
+        function openProfileInfo() {
+            let ud = usersDB[activeUser];
+            document.getElementById('info-nama').innerText = ud.nama;
+            document.getElementById('info-kota').innerText = ud.kota; 
+            document.getElementById('info-umur').innerText = ud.umur;
+            let mPic = document.getElementById('modal-profile-pic');
+            if(ud.photo) { mPic.innerText = ''; mPic.style.backgroundImage = `url(${ud.photo})`; } 
+            else { mPic.style.backgroundImage = 'none'; mPic.innerText = activeUser.charAt(0).toUpperCase(); }
+            
+            renderMyTimeline();
+            document.getElementById('profile-modal').style.display = 'flex';
+        }
+
+        function closeProfileInfo() { document.getElementById('profile-modal').style.display = 'none'; }
+        
+        function changeProfilePic(event) {
+            let file = event.target.files[0];
+            if(file) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    usersDB[activeUser].photo = e.target.result; localStorage.setItem('nx_usersDB', JSON.stringify(usersDB));
+                    document.getElementById('modal-profile-pic').style.backgroundImage = `url(${e.target.result})`;
+                    document.getElementById('user-profile').style.backgroundImage = `url(${e.target.result})`;
+                    renderFeed();
+                }; reader.readAsDataURL(file);
+            }
+        }
+
+        // INTIP PROFIL ORANG LAIN
+        function openOtherProfile(usernameKey) {
+            let target = usersDB[usernameKey];
+            if(!target) return;
+            
+            document.getElementById('v-nama').innerText = target.nama;
+            document.getElementById('v-kota').innerText = target.kota;
+            document.getElementById('v-umur').innerText = target.umur;
+            
+            let vPic = document.getElementById('v-profile-pic');
+            if(target.photo) { vPic.innerText = ''; vPic.style.backgroundImage = `url(${target.photo})`; }
+            else { vPic.style.backgroundImage = 'none'; vPic.innerText = usernameKey.charAt(0).toUpperCase(); }
+
+            document.getElementById('v-timeline-title').innerText = `Postingan ${target.nama}`;
+            
+            // Render postingan khusus orang tersebut
+            let area = document.getElementById('v-posts-area');
+            let filtered = globalPosts.filter(p => p.username === usernameKey);
+            if(filtered.length === 0) {
+                area.innerHTML = 'Belum ada postingan.';
+            } else {
+                area.innerHTML = filtered.map(p => `
+                    <div style="border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px; background: #fafafa;">
+                        <p style="font-size:14px;">${p.text}</p>
+                        ${p.img ? `<img src="${p.img}" style="width:100%; margin-top:5px; border-radius:3px;">` : ''}
+                    </div>
+                `).join('');
+            }
+            document.getElementById('view-profile-modal').style.display = 'flex';
+        }
+
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if(element) element.classList.add('active');
+            if(tabId === 'add') document.getElementById('dot-add').style.display = 'none';
+            if(tabId === 'notifikasi') document.getElementById('dot-notif').style.display = 'none';
+        }
+
+        function openPostForm() { document.getElementById('post-trigger').style.display = 'none'; document.getElementById('post-box-area').style.display = 'block'; }
+        
+        let postText = document.getElementById('post-text'), postPhoto = document.getElementById('post-photo'), btnPost = document.getElementById('btn-post');
+        function checkPostForm() {
+            if(postText.value.trim() !== '' && postPhoto.files.length > 0) { btnPost.classList.add('ready'); btnPost.disabled = false; } 
+            else { btnPost.classList.remove('ready'); btnPost.disabled = true; }
+        }
+        postText.addEventListener('input', checkPostForm); postPhoto.addEventListener('change', checkPostForm);
+
+        function startPosting() {
+            if(!btnPost.classList.contains('ready')) return;
+            let scanner = document.getElementById('post-scanner'); scanner.style.display = 'block'; scanner.style.animation = 'scan 1.5s linear forwards';
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                tempPostData = { text: postText.value, img: e.target.result };
+                setTimeout(() => {
+                    scanner.style.display = 'none'; scanner.style.animation = 'none';
+                    let hasilTypo = cekTypo(tempPostData.text);
+                    if(hasilTypo) {
+                        document.getElementById('typo-detail').innerHTML = hasilTypo.join("<br>");
+                        document.getElementById('typo-modal').style.display = 'flex';
+                    } else { finishPosting(); }
+                }, 1500);
+            }; reader.readAsDataURL(postPhoto.files[0]);
+        }
+
+        function cancelPost() { document.getElementById('typo-modal').style.display = 'none'; }
+        
+        function finishPosting() {
+            document.getElementById('typo-modal').style.display = 'none';
+            document.getElementById('post-trigger').style.display = 'flex';
+            document.getElementById('post-box-area').style.display = 'none';
+
+            let newPost = {
+                id: 'post-' + Date.now(),
+                username: activeUser,
+                author: usersDB[activeUser].nama,
+                text: tempPostData.text,
+                img: tempPostData.img,
+                likes: 0,
+                comments: []
+            };
+
+            globalPosts.unshift(newPost);
+            localStorage.setItem('nx_globalPosts', JSON.stringify(globalPosts));
+            
+            postText.value = ''; postPhoto.value = ''; checkPostForm();
+            renderFeed();
+        }
+
+        // RENDER UTAMA FEED SEMUA PENGGUNA
+        function renderFeed() {
+            let feedArea = document.getElementById('feed-area');
+            if(globalPosts.length === 0) {
+                feedArea.innerHTML = '<p style="text-align:center; color:#777;">Belum ada postingan sama sekali.</p>';
+                return;
+            }
+
+            feedArea.innerHTML = globalPosts.map(post => {
+                let pUser = usersDB[post.username] || { photo: null };
+                let profBg = pUser.photo;
+                let profStyle = profBg ? `background-image: url(${profBg}); color: transparent;` : '';
+                
+                // Cek hak akses menu titik tiga
+                let isOwner = post.username === activeUser;
+                let menuHtml = isOwner ? `
+                    <div class="post-menu-btn" onclick="toggleMenu('${post.id}')"><i class="fas fa-ellipsis-v"></i></div>
+                    <div class="post-options" id="menu-${post.id}">
+                        <div onclick="editPost('${post.id}')"><i class="fas fa-edit"></i> Edit Post</div>
+                        <div class="hapus-btn" onclick="deletePost('${post.id}')"><i class="fas fa-trash"></i> Hapus</div>
+                    </div>
+                ` : '';
+
+                let commentsHtml = post.comments.map(c => `
+                    <div class="comment-list"><strong>${c.by}:</strong><br>${c.txt}</div>
+                `).join('');
+
+                return `
+                    <div class="feed-post" id="${post.id}">
+                        <div class="feed-header">
+                            <div class="profile-circle" onclick="openOtherProfile('${post.username}')" style="width:34px; height:34px; font-size:14px; background-color: var(--primary-blue); color:white; ${profStyle}">
+                                ${profBg ? '' : post.username.charAt(0).toUpperCase()}
+                            </div>
+                            <strong style="flex-grow: 1; cursor:pointer;" onclick="openOtherProfile('${post.username}')">${post.author}</strong>
+                            ${menuHtml}
+                        </div>
+                        <p id="text-${post.id}">${post.text}</p>
+                        ${post.img ? `<img src="${post.img}" class="feed-img">` : ''}
+                        
+                        <div class="feed-actions">
+                            <button onclick="handleLike(this, '${post.id}')"><i class="fas fa-thumbs-up"></i> Suka (<span class="like-count">${post.likes}</span>)</button>
+                            <button onclick="toggleComment(this)"><i class="fas fa-comment"></i> Komentar</button>
+                            <button onclick="handleAddReq(this, '${post.username}')"><i class="fas fa-user-plus"></i> Add</button>
+                        </div>
+                        
+                        <div class="comment-section">
+                            <div class="comment-area">${commentsHtml}</div>
+                            <div style="display:flex; align-items:flex-end; gap:5px; margin-top:10px;">
+                                <textarea placeholder="Tulis komentar..." style="flex:1; padding:10px; border-radius:10px; border:1px solid #ccc; resize:none;" rows="2"></textarea>
+                                <button onclick="submitCommentBtn(this, '${post.id}')" style="background:var(--primary-blue); color:white; border:none; padding:10px 15px; border-radius:10px; cursor:pointer; font-weight:bold;">Kirim</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // RENDER TIMELINE POSTINGAN DI PROFIL SENDIRI
+        function renderMyTimeline() {
+            let area = document.getElementById('my-posts-area');
+            let filtered = globalPosts.filter(p => p.username === activeUser);
+            if(filtered.length === 0) {
+                area.innerHTML = 'Belum ada postingan.';
+            } else {
+                area.innerHTML = filtered.map(p => `
+                    <div style="border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px; background: #fafafa; text-align: left;">
+                        <p style="font-size:14px;">${p.text}</p>
+                        ${p.img ? `<img src="${p.img}" style="width:100%; margin-top:5px; border-radius:3px;">` : ''}
+                    </div>
+                `).join('');
+            }
+        }
+
+        function toggleMenu(postId) {
+            let menu = document.getElementById('menu-' + postId);
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function editPost(postId) {
+            document.getElementById('menu-' + postId).style.display = 'none';
+            let targetPost = globalPosts.find(p => p.id === postId);
+            if(!targetPost) return;
+
+            let newText = prompt("Edit postingan Anda:", targetPost.text);
+            if(newText !== null && newText.trim() !== "") {
+                targetPost.text = newText;
+                localStorage.setItem('nx_globalPosts', JSON.stringify(globalPosts));
+                renderFeed();
+                renderMyTimeline();
+            }
+        }
+
+        function deletePost(postId) {
+            document.getElementById('menu-' + postId).style.display = 'none';
+            if(confirm("Yakin ingin menghapus postingan ini secara permanen dari semua orang?")) {
+                globalPosts = globalPosts.filter(p => p.id !== postId);
+                localStorage.setItem('nx_globalPosts', JSON.stringify(globalPosts));
+                renderFeed();
+                renderMyTimeline();
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            if(!e.target.closest('.post-menu-btn') && !e.target.closest('.post-options')) {
+                document.querySelectorAll('.post-options').forEach(m => m.style.display = 'none');
+            }
+        });
+
+        function handleLike(btn, postId) {
+            let targetPost = globalPosts.find(p => p.id === postId);
+            if(targetPost) {
+                targetPost.likes += 1;
+                localStorage.setItem('nx_globalPosts', JSON.stringify(globalPosts));
+                btn.querySelector('.like-count').innerText = targetPost.likes;
+                btn.style.color = 'var(--primary-blue)';
+                triggerNotif('notif', `${usersDB[activeUser].nama} menyukai postingan Anda.`, postId);
+            }
+        }
+
+        function toggleComment(btn) {
+            let section = btn.parentElement.nextElementSibling;
+            section.style.display = section.style.display === 'block' ? 'none' : 'block';
+            if(section.style.display === 'block') section.querySelector('textarea').focus();
+        }
+
+        function submitCommentBtn(btn, postId) {
+            let input = btn.previousElementSibling;
+            if(input.value.trim() !== '') {
+                let targetPost = globalPosts.find(p => p.id === postId);
+                if(targetPost) {
+                    let namaKu = usersDB[activeUser].nama;
+                    let formattedText = input.value.replace(/\n/g, '<br>');
+                    
+                    targetPost.comments.push({ by: namaKu, txt: formattedText });
+                    localStorage.setItem('nx_globalPosts', JSON.stringify(globalPosts));
+                    
+                    let commentArea = btn.parentElement.previousElementSibling;
+                    commentArea.innerHTML += `<div class="comment-list"><strong>${namaKu}:</strong><br>${formattedText}</div>`;
+                    input.value = '';
+                    
+                    triggerNotif('notif', `${namaKu} mengomentari postingan Anda.`, postId);
+                }
+            }
+        }
+
+        function handleAddReq(btn, targetUsernameKey) {
+            if(targetUsernameKey === activeUser) return alert("Tidak bisa menambahkan diri sendiri!");
+            btn.innerHTML = '<i class="fas fa-clock"></i> Tertunda';
+            btn.disabled = true;
+            triggerNotif('add', `${usersDB[activeUser].nama} mengirim permintaan.`);
+            
+            let reqList = document.getElementById('request-list');
+            if(reqList.innerHTML === 'Belum ada permintaan.') reqList.innerHTML = '';
+            
+            reqList.innerHTML += `
+                <div style="display:flex; justify-content:space-between; padding:10px; background:#fff; margin-bottom:5px; border-radius:5px; align-items:center; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                    <span><strong>${usersDB[activeUser].nama}</strong> ingin berteman</span>
+                    <button style="background:var(--primary-blue); color:white; border:none; padding:8px; border-radius:5px; font-weight:bold; cursor:pointer;" onclick="this.innerHTML='Berteman'; this.style.background='#42b72a'; this.disabled=true;">Konfirmasi</button>
+                </div>
+            `;
+        }
+
+        function triggerNotif(type, msg, postId) {
+            if(type === 'notif') {
+                document.getElementById('dot-notif').style.display = 'block';
+                let list = document.getElementById('notif-list');
+                let emptyTxt = document.getElementById('empty-notif');
+                if(emptyTxt) emptyTxt.style.display = 'none';
+                
+                list.innerHTML = `<li onclick="goToPost('${postId}')" style="padding:15px; background:white; margin-bottom:8px; border-radius:5px; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid var(--primary-blue);">🔔 ${msg} <br><span style="font-size:11px; color:#888;">Ketuk untuk melihat</span></li>` + list.innerHTML;
+            } else if(type === 'add') {
+                document.getElementById('dot-add').style.display = 'block';
+            }
+        }
+
+        function goToPost(postId) {
+            switchTab('beranda', document.querySelector('.fa-home').parentElement);
+            let postEl = document.getElementById(postId);
+            if(postEl) {
+                postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                postEl.style.boxShadow = '0 0 15px var(--primary-blue)';
+                setTimeout(() => { postEl.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)'; }, 2000);
+            }
+        }
+    </script>
+</body>
+</html>
