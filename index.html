@@ -3,530 +3,500 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SosmedKu</title>
+    <title>Neon X Hunter</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ================= CSS VARIABEL (TEMA) ================= */
+        /* ================= KUSTOMISASI TEMA NEON X HUNTER ================= */
         :root {
-            --bg-color: #f0f2f5;
+            --bg-color: #eef4f8;
+            --banner-blue: #0084ff;
+            --nav-blue: #18a0fb;
             --surface-color: #ffffff;
-            --text-main: #050505;
-            --text-muted: #65676b;
-            --primary-color: #1877f2;
-            --primary-hover: #166fe5;
-            --border-color: #ccd0d5;
-            --danger: #e41e3f;
-            --success: #31a24c;
+            --text-main: #333333;
+            --text-muted: #777777;
+            --border-color: #e0e6ed;
+            --danger: #fe4a49;
+            --success: #2ec4b6;
             --typo-bg: #fff3cd;
             --typo-text: #856404;
         }
 
-        .dark-mode {
-            --bg-color: #18191a;
-            --surface-color: #242526;
-            --text-main: #e4e6eb;
-            --text-muted: #b0b3b8;
-            --primary-color: #2d88ff;
-            --primary-hover: #1877f2;
-            --border-color: #3e4042;
-            --typo-bg: #4a3c13;
-            --typo-text: #f5d376;
-        }
-
-        /* ================= RESET & DASAR ================= */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); transition: background 0.3s; padding-top: 60px; }
-        body.auth-page { padding-top: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        a { text-decoration: none; color: var(--primary-color); cursor: pointer; }
-        button { cursor: pointer; border: none; background: none; color: var(--text-main); transition: all 0.2s; }
-        input, textarea, select { background: var(--surface-color); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 15px; outline: none; width: 100%; font-size: 14px; }
-        input:focus, textarea:focus, select:focus { border-color: var(--primary-color); }
-        hr { border: 0; border-top: 1px solid var(--border-color); margin: 15px 0; }
-
-        /* ================= HALAMAN AUTENTIKASI (LOGIN/DAFTAR) ================= */
-        .auth-container { width: 100%; max-width: 400px; padding: 25px; background: var(--surface-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; margin: 20px; }
-        .auth-logo { font-size: 32px; font-weight: bold; color: var(--primary-color); margin-bottom: 10px; }
-        .auth-title { font-size: 18px; color: var(--text-muted); margin-bottom: 25px; }
-        .form-group { margin-bottom: 15px; text-align: left; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: var(--text-muted); }
-        .auth-btn { background: var(--primary-color); color: white; font-weight: bold; padding: 12px; border-radius: 8px; width: 100%; font-size: 16px; margin-top: 10px; }
-        .auth-btn:hover { background: var(--primary-hover); }
-        .auth-switch { margin-top: 20px; font-size: 14px; color: var(--text-muted); }
-
-        /* ================= NAVBAR (ATAS) ================= */
-        .navbar {
-            position: fixed; top: 0; left: 0; width: 100%; background: var(--surface-color);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 20px; height: 60px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000;
-            display: none; /* Tersembunyi sebelum login */
-        }
-        .nav-left { display: flex; align-items: center; gap: 15px; }
-        .logo { font-size: 24px; font-weight: bold; color: var(--primary-color); }
-        .search-bar { position: relative; }
-        .search-bar input { border-radius: 20px; padding-left: 35px; width: 220px; }
-        .search-bar i { position: absolute; left: 12px; top: 12px; color: var(--text-muted); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); }
+        body.auth-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #18a0fb; }
         
-        .nav-center { display: flex; gap: 10px; }
-        .nav-btn {
-            width: 50px; height: 50px; display: flex; justify-content: center; align-items: center;
-            border-radius: 10px; font-size: 20px; color: var(--text-muted); position: relative;
-        }
-        .nav-btn.active { color: var(--primary-color); border-bottom: 3px solid var(--primary-color); border-radius: 0; }
-        .nav-btn:hover { background: var(--bg-color); }
-        .badge {
-            position: absolute; top: 5px; right: 5px; background: var(--danger); color: white;
-            font-size: 12px; font-weight: bold; padding: 2px 5px; border-radius: 50%;
-        }
-
-        .nav-right { display: flex; align-items: center; gap: 10px; }
-        .icon-btn {
-            width: 40px; height: 40px; border-radius: 50%; background: var(--bg-color);
-            display: flex; justify-content: center; align-items: center; font-size: 18px;
-        }
-
-        /* ================= STRUKTUR TAMPILAN (VIEWS) ================= */
-        .view-container { display: none; max-width: 700px; margin: 20px auto; padding: 0 10px; }
-        .card { background: var(--surface-color); border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-
-        /* ================= BERANDA & TYPO SCANNER ================= */
-        .create-post textarea { width: 100%; border-radius: 10px; padding: 10px; resize: none; min-height: 80px; margin-bottom: 10px; font-size: 16px; }
-        .post-options { display: flex; justify-content: space-between; align-items: center; }
-        .post-options select { padding: 5px 10px; border-radius: 5px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); width: auto; }
-        .btn-post { background: var(--primary-color); color: white; padding: 8px 20px; border-radius: 5px; font-weight: bold; }
+        /* ================= BANNER TOP & NAVIGATION ================= */
+        .top-banner { background-color: var(--banner-blue); color: white; padding: 8px 15px; font-size: 14px; font-weight: 500; text-align: left; position: fixed; top: 0; width: 100%; z-index: 1100; }
         
-        .typo-alert { background: var(--typo-bg); color: var(--typo-text); padding: 10px; border-radius: 5px; margin-bottom: 10px; display: none; justify-content: space-between; align-items: center; font-size: 14px; }
-        .typo-alert span { font-weight: bold; }
-        .btn-fix { background: var(--primary-color); color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; }
+        .header-main { background-color: var(--nav-blue); height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; position: fixed; top: 33px; width: 100%; z-index: 1050; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .web-title { color: white; font-size: 20px; font-weight: bold; }
+        .user-avatar-circle { width: 40px; height: 40px; background-color: white; color: var(--nav-blue); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-        .feed-post .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background: #ccc; object-fit: cover; }
-        .post-content { margin-bottom: 15px; line-height: 1.5; }
-        .post-actions { display: flex; border-top: 1px solid var(--border-color); padding-top: 10px; gap: 20px; color: var(--text-muted); }
-        .post-actions span { cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .nav-tabs { background-color: var(--surface-color); display: flex; border-bottom: 2px solid var(--border-color); position: fixed; top: 93px; width: 100%; z-index: 1000; }
+        .tab-item { flex: 1; text-align: center; padding: 15px 0; color: #a0aab5; font-size: 22px; cursor: pointer; transition: all 0.2s; position: relative; border-bottom: 3px solid transparent; }
+        .tab-item.active { color: #ff7a00; border-bottom-color: #18a0fb; background-color: #fcfdfe; }
+        .tab-item .badge { position: absolute; top: 8px; right: 25%; background: var(--danger); color: white; font-size: 11px; padding: 2px 5px; border-radius: 10px; font-family: sans-serif; }
 
-        /* ================= PROFIL & TAB DATA DIRI ================= */
-        .cover-photo { width: 100%; height: 180px; background: linear-gradient(45deg, #1877f2, #166fe5); border-radius: 10px 10px 0 0; }
-        .profile-header { position: relative; text-align: center; margin-bottom: 20px; }
-        .profile-avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--surface-color); position: absolute; bottom: -55px; left: 50%; transform: translateX(-50%); background: #fff; object-fit: cover; }
-        .profile-info { margin-top: 65px; text-align: center; }
-        .profile-tabs { display: flex; justify-content: space-around; border-top: 1px solid var(--border-color); margin-top: 15px; }
-        .profile-tabs span { font-weight: bold; color: var(--text-muted); cursor: pointer; padding: 12px 5px; width: 100%; text-align: center; border-bottom: 2px solid transparent; }
-        .profile-tabs span.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        /* Content Wrapper */
+        .app-content { margin-top: 160px; padding: 15px; max-width: 600px; margin-left: auto; margin-right: auto; padding-bottom: 40px; }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+        .card { background: var(--surface-color); border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
+
+        /* ================= STYLE STATUS BULAT (PERSIS SCREENSHOT) ================= */
+        .status-box-container { background: var(--surface-color); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; }
+        .status-input-round { width: 100%; background: #f0f2f5; border: 1px solid #e4e6eb; border-radius: 25px; padding: 12px 20px; font-size: 15px; color: var(--text-main); outline: none; resize: none; min-height: 46px; display: block; }
+        .status-input-round:focus { background: #ffffff; border-color: var(--nav-blue); }
         
-        .profile-tab-content { display: none; padding-top: 15px; }
-        .profile-tab-content.active { display: block; }
+        .status-actions-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid #f0f2f5; }
+        .btn-post-orange { background: #ff7a00; color: white; padding: 7px 20px; border-radius: 20px; font-weight: bold; border: none; font-size: 14px; }
+        .btn-post-orange:hover { background: #e06c00; }
+
+        /* Typo Alert */
+        .typo-box { background: var(--typo-bg); color: var(--typo-text); padding: 10px 15px; border-radius: 6px; margin-top: 10px; display: none; justify-content: space-between; align-items: center; font-size: 13px; }
+        .btn-fix-typo { background: var(--nav-blue); color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+
+        /* Feed Post */
+        .feed-item { background: var(--surface-color); border-radius: 8px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border-color); }
+        .feed-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .feed-avatar { width: 35px; height: 35px; background: #ccc; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; color: white; }
+        .feed-body { font-size: 15px; line-height: 1.4; color: #222; }
+
+        /* ================= PROFIL & DATA DIRI ================= */
+        .profile-card-top { text-align: center; padding: 20px 10px; position: relative; }
+        .profile-large-avatar { width: 80px; height: 80px; background: var(--nav-blue); color: white; font-size: 36px; font-weight: bold; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; margin-bottom: 10px; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
+        .profile-subtabs { display: flex; justify-content: space-around; margin-top: 15px; background: #f7f9fa; border-radius: 6px; padding: 5px; }
+        .subtab-btn { flex: 1; padding: 8px; text-align: center; font-size: 13px; font-weight: bold; color: var(--text-muted); cursor: pointer; border-radius: 4px; }
+        .subtab-btn.active { background: white; color: var(--nav-blue); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         
-        /* Grid Data Diri */
-        .info-grid { display: grid; grid-template-columns: 120px 1fr; gap: 12px; align-items: center; }
-        .info-label { font-weight: bold; color: var(--text-muted); }
-        .info-value { font-size: 15px; }
-        .btn-edit-profile { background: var(--bg-color); color: var(--text-main); padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; border: 1px solid var(--border-color); float: right; margin-top: -5px; }
+        .p-subcontent { display: none; margin-top: 15px; text-align: left; }
+        .p-subcontent.active { display: block; }
+        
+        .info-row { display: grid; grid-template-columns: 100px 1fr; padding: 10px 0; border-bottom: 1px solid #f0f2f5; font-size: 14px; }
+        .info-lbl { font-weight: bold; color: var(--text-muted); }
+        input.edit-fields, select.edit-fields, textarea.edit-fields { padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 14px; width: 100%; }
+        .btn-action-profile { float: right; background: #f0f2f5; padding: 5px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; border: 1px solid var(--border-color); margin-top: -5px; }
 
-        /* ================= PERTEMANAN ================= */
-        .friend-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-color); }
-        .friend-info { display: flex; align-items: center; gap: 10px; }
-        .friend-actions button { padding: 8px 15px; border-radius: 5px; font-weight: bold; margin-left: 5px; }
-        .btn-accept { background: var(--primary-color); color: white; }
-        .btn-decline { background: var(--bg-color); color: var(--text-main); }
-
-        /* ================= NOTIFIKASI ================= */
-        .notif-item { display: flex; align-items: center; gap: 15px; padding: 10px 0; border-bottom: 1px solid var(--border-color); }
-        .notif-item i { color: var(--primary-color); font-size: 20px; }
-
-        /* ================= CHAT ROOM ================= */
-        .chat-container { display: flex; height: calc(100vh - 100px); background: var(--surface-color); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .chat-sidebar { width: 35%; border-right: 1px solid var(--border-color); overflow-y: auto; }
-        .chat-main { width: 65%; display: flex; flex-direction: column; position: relative; }
-        .chat-list-item { display: flex; align-items: center; gap: 10px; padding: 15px; cursor: pointer; border-bottom: 1px solid var(--border-color); }
-        .chat-list-item:hover { background: var(--bg-color); }
-        .online-dot { width: 10px; height: 10px; background: var(--success); border-radius: 50%; display: inline-block; }
-        .chat-header { padding: 15px; background: var(--bg-color); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
-        .chat-body { flex: 1; padding: 15px; overflow-y: auto; background: var(--bg-color); display: flex; flex-direction: column; gap: 10px; }
-        .bubble { max-width: 70%; padding: 10px 15px; border-radius: 15px; position: relative; }
-        .bubble.left { background: var(--surface-color); align-self: flex-start; border-bottom-left-radius: 0; }
-        .bubble.right { background: #dcf8c6; color: #000; align-self: flex-end; border-bottom-right-radius: 0; }
-        .dark-mode .bubble.right { background: #005c4b; color: #fff; }
-        .chat-status { font-size: 10px; color: gray; text-align: right; margin-top: 5px; }
-        .chat-input { padding: 10px; background: var(--surface-color); display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--border-color); }
-        .chat-input input { flex: 1; border-radius: 20px; }
-        .chat-input i { font-size: 20px; color: var(--text-muted); cursor: pointer; }
-
-        .dropdown { position: relative; display: inline-block; }
-        .dropdown-content { display: none; position: absolute; right: 0; top: 30px; background-color: var(--surface-color); min-width: 200px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); border-radius: 8px; z-index: 10; border: 1px solid var(--border-color); overflow: hidden; }
-        .dropdown-content a { color: var(--text-main); padding: 12px 16px; text-decoration: none; display: block; font-size: 14px; }
-        .dropdown-content a:hover { background-color: var(--bg-color); }
-        .dropdown-content a i { margin-right: 10px; width: 15px; text-align: center; }
+        /* ================= CHAT COMPONENT ================= */
+        .chat-layout { display: flex; height: 450px; background: white; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
+        .chat-list { width: 35%; border-right: 1px solid var(--border-color); background: #fcfdfe; overflow-y: auto; }
+        .chat-room { width: 65%; display: flex; flex-direction: column; background: #f4f7f9; }
+        .chat-user-item { padding: 12px 10px; border-bottom: 1px solid #f0f2f5; font-size: 13px; cursor: pointer; font-weight: 500; }
+        .chat-user-item:hover { background: #eef4f8; }
+        .chat-window-header { padding: 10px 15px; background: white; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: bold; }
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .chat-bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 14px; line-height: 1.4; }
+        .chat-bubble.left { background: white; align-self: flex-start; border-bottom-left-radius: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .chat-bubble.right { background: #dcf8c6; align-self: flex-end; border-bottom-right-radius: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .chat-bottom-input { padding: 10px; background: white; display: flex; gap: 8px; border-top: 1px solid var(--border-color); }
+        .chat-bottom-input input { background: #f0f2f5; border: none; border-radius: 20px; padding: 8px 15px; flex: 1; outline: none; }
+        
+        .dropdown-chat { position: relative; }
+        .dropdown-chat-menu { display: none; position: absolute; right: 0; top: 25px; background: white; min-width: 150px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-radius: 4px; z-index: 10; border: 1px solid var(--border-color); }
+        .dropdown-chat-menu a { display: block; padding: 8px 12px; color: #333; text-decoration: none; font-size: 12px; }
+        .dropdown-chat-menu a:hover { background: #f0f2f5; }
         .show { display: block; }
+
+        /* ================= AUTHENTICATION DESIGN ================= */
+        .auth-card { background: white; padding: 30px; border-radius: 12px; width: 100%; max-width: 360px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        .auth-title-main { font-size: 26px; font-weight: bold; color: var(--nav-blue); margin-bottom: 5px; }
+        .auth-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+        .input-group { text-align: left; margin-bottom: 12px; }
+        .input-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: var(--text-muted); }
+        .input-group input { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; }
+        .input-group input:focus { border-color: var(--nav-blue); }
+        .btn-auth-submit { background: var(--nav-blue); color: white; width: 100%; padding: 10px; border-radius: 6px; font-weight: bold; border: none; font-size: 15px; margin-top: 10px; }
+        .btn-auth-submit:hover { background: var(--banner-blue); }
+        .auth-footer { margin-top: 15px; font-size: 13px; color: var(--text-muted); }
     </style>
 </head>
-<body id="appBody" class="auth-page">
+<body>
 
-    <div id="loginView" class="auth-container">
-        <div class="auth-logo">SosmedKu</div>
-        <div class="auth-title">Silakan login untuk masuk</div>
-        <form onsubmit="handleLogin(event)">
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" id="loginUser" placeholder="Masukkan username" required>
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="loginPass" placeholder="Masukkan password" required>
-            </div>
-            <button type="submit" class="auth-btn">Masuk</button>
+    <div id="loginSection" class="auth-card" style="display:none;">
+        <div class="auth-title-main">Neon X Hunter</div>
+        <div class="auth-subtitle">Silakan login ke akun pengembang Anda</div>
+        <form onsubmit="actionLogin(event)">
+            <div class="input-group"><label>Username</label><input type="text" id="logUser" required placeholder="admin"></div>
+            <div class="input-group"><label>Password</label><input type="password" id="logPass" required placeholder="admin"></div>
+            <button type="submit" class="btn-auth-submit">Masuk Sistem</button>
         </form>
-        <div class="auth-switch">
-            Belum punya akun? <a onclick="switchAuth('register')">Daftar Menu</a>
-        </div>
+        <div class="auth-footer">Belum punya akses? <a onclick="toggleAuthForms('reg')">Daftar Menu</a></div>
     </div>
 
-    <div id="registerView" class="auth-container" style="display: none;">
-        <div class="auth-logo">SosmedKu</div>
-        <div class="auth-title">Buat akun baru</div>
-        <form onsubmit="handleRegister(event)">
-            <div class="form-group">
-                <label>Nama Lengkap</label>
-                <input type="text" id="regNama" placeholder="Nama lengkap Anda" required>
-            </div>
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" id="regUser" placeholder="Buat username" required>
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="regPass" placeholder="Buat password" required>
-            </div>
-            <button type="submit" class="auth-btn">Daftar Akun</button>
+    <div id="registerSection" class="auth-card" style="display:none;">
+        <div class="auth-title-main">Neon X Hunter</div>
+        <div class="auth-subtitle">Buat database akun baru</div>
+        <form onsubmit="actionRegister(event)">
+            <div class="input-group"><label>Nama Lengkap</label><input type="text" id="regName" required></div>
+            <div class="input-group"><label>Username</label><input type="text" id="regUser" required></div>
+            <div class="input-group"><label>Password</label><input type="password" id="regPass" required></div>
+            <button type="submit" class="btn-auth-submit">Buat Akun</button>
         </form>
-        <div class="auth-switch">
-            Sudah punya akun? <a onclick="switchAuth('login')">Login disini</a>
-        </div>
+        <div class="auth-footer">Sudah terdaftar? <a onclick="toggleAuthForms('log')">Login kembali</a></div>
     </div>
 
-    <nav class="navbar" id="mainNavbar">
-        <div class="nav-left">
-            <div class="logo">SosmedKu</div>
-            <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Cari..."></div>
-        </div>
-        <div class="nav-center">
-            <button class="nav-btn active" id="btn-home" onclick="switchView('home')"><i class="fas fa-home"></i></button>
-            <button class="nav-btn" id="btn-friends" onclick="switchView('friends')"><i class="fas fa-user-friends"></i><span class="badge">2</span></button>
-            <button class="nav-btn" id="btn-chat" onclick="switchView('chat')"><i class="fab fa-telegram-plane"></i><span class="badge">3</span></button>
-            <button class="nav-btn" id="btn-notif" onclick="switchView('notif')"><i class="fas fa-bell"></i><span class="badge">5</span></button>
-            <button class="nav-btn" id="btn-profile" onclick="switchView('profile')"><i class="fas fa-user-circle"></i></button>
-        </div>
-        <div class="nav-right">
-            <button class="icon-btn" onclick="toggleDarkMode()"><i class="fas fa-moon"></i></button>
-            <button class="icon-btn" onclick="handleLogout()" title="Keluar" style="color: var(--danger); margin-left: 5px;"><i class="fas fa-sign-out-alt"></i></button>
-        </div>
-    </nav>
+    <div id="mainApplication" style="display:none;">
+        <div class="top-banner">web ini masih dalam tahap pengembangan</div>
+        
+        <header class="header-main">
+            <div class="web-title">Neon X Hunter</div>
+            <div class="user-avatar-circle" id="navInitial">A</div>
+        </header>
 
-    <main id="home" class="view-container">
-        <div class="card create-post">
-            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <img src="https://via.placeholder.com/40" class="avatar">
-                <textarea id="postText" placeholder="Uji typo di sini: aky, km, sy, dmn"></textarea>
-            </div>
-            <div id="typoAlert" class="typo-alert">
-                <div><i class="fas fa-exclamation-triangle"></i> Typo terdeteksi: <span id="typoWords"></span></div>
-                <button class="btn-fix" onclick="fixAllTypos()">Perbaiki Semua</button>
-            </div>
-            <div class="post-options">
-                <div>
-                    <select id="privacy">
-                        <option value="public">🌎 Publik</option>
-                        <option value="friends">👥 Teman</option>
-                    </select>
-                </div>
-                <button class="btn-post" onclick="addNewPost()">Posting</button>
-            </div>
-        </div>
-        <div id="feedContainer">
-            <div class="card feed-post">
-                <div class="post-header">
-                    <img src="https://via.placeholder.com/40" class="avatar">
-                    <div><strong>Budi Santoso</strong><br><small style="color: var(--text-muted)">Baru saja • 🌎 Publik</small></div>
-                </div>
-                <div class="post-content">Selamat datang di SosmedKu! Fitur Login dan Data Diri sukses diperbarui.</div>
-                <div class="post-actions"><span><i class="far fa-thumbs-up"></i> Suka</span><span><i class="far fa-comment"></i> Komentar</span></div>
-            </div>
-        </div>
-    </main>
+        <nav class="nav-tabs">
+            <div class="tab-item active" id="tab-home" onclick="navigateTo('home')"><i class="fas fa-home"></i></div>
+            <div class="tab-item" id="tab-profile" onclick="navigateTo('profile')"><i class="fas fa-user"></i></div>
+            <div class="tab-item" id="tab-chat" onclick="navigateTo('chat')"><i class="fas fa-handshake"></i><span class="badge">3</span></div>
+            <div class="tab-item" id="tab-notif" onclick="navigateTo('notif')"><i class="fas fa-bell"></i></div>
+        </nav>
 
-    <main id="profile" class="view-container">
-        <div class="card" style="padding: 0; overflow: hidden;">
-            <div class="cover-photo"></div>
-            <div class="profile-header">
-                <img src="https://via.placeholder.com/110" class="profile-avatar" id="profileAvatar">
-            </div>
-            <div class="profile-info">
-                <h2 id="profileName">Nama <i class="fas fa-check-circle" style="color: var(--primary-color); font-size:16px;"></i></h2>
-                <p style="color: var(--text-muted)" id="profileUsername">@username</p>
-                <p style="margin: 10px 0;" id="profileBioShort">Halo dunia!</p>
-            </div>
-            <div class="profile-tabs">
-                <span id="tab-posts" class="active" onclick="switchProfileTab('posts')">Postingan</span>
-                <span id="tab-info" onclick="switchProfileTab('info')">Data Diri</span>
-                <span id="tab-friends" onclick="switchProfileTab('p-friends')">Teman</span>
-            </div>
-        </div>
-
-        <div id="profileTabPosts" class="profile-tab-content active">
-            <div id="myPostsContainer">
-                <div class="card" style="color: var(--text-muted); padding: 20px; text-align: center;">Belum ada postingan pribadi.</div>
-            </div>
-        </div>
-
-        <div id="profileTabInfo" class="profile-tab-content">
-            <div class="card">
-                <button class="btn-edit-profile" id="btnEditSave" onclick="toggleEditProfile()">Edit Data Diri</button>
-                <h3 style="margin-bottom: 15px;"><i class="fas fa-id-card" style="color: var(--primary-color); margin-right: 8px;"></i> Menu Data Diri</h3>
-                
-                <div id="infoViewMode" class="info-grid">
-                    <div class="info-label">Kota:</div>
-                    <div class="info-value" id="valKota">Jakarta, Indonesia</div>
+        <div class="app-content">
+            
+            <section id="view-home" class="view-section active">
+                <div class="status-box-container">
+                    <textarea class="status-input-round" id="statusField" placeholder="Tulis sesuatu..."></textarea>
                     
-                    <div class="info-label">Umur:</div>
-                    <div class="info-value" id="valUmur">22 Tahun</div>
-                    
-                    <div class="info-label">Bio:</div>
-                    <div class="info-value" id="valBio">Menyukai Koding & Kopi</div>
-                    
-                    <div class="info-label">Gender:</div>
-                    <div class="info-value" id="valGender">Laki-laki</div>
+                    <div id="typoAlertBox" class="typo-box">
+                        <div><i class="fas fa-magic"></i> Typo terdeteksi: <span id="typoLabelText"></span></div>
+                        <button class="btn-fix-typo" onclick="executeTypoFix()">Perbaiki</button>
+                    </div>
+
+                    <div class="status-actions-bar">
+                        <span style="font-size: 12px; color: var(--text-muted);"><i class="fas fa-earth-asia"></i> Publik</span>
+                        <button class="btn-post-orange" onclick="publishNewPost()">Posting</button>
+                    </div>
                 </div>
 
-                <div id="infoEditMode" class="info-grid" style="display: none;">
-                    <div class="info-label">Kota:</div>
-                    <input type="text" id="inputKota">
-                    
-                    <div class="info-label">Umur:</div>
-                    <input type="number" id="inputUmur">
-                    
-                    <div class="info-label">Bio:</div>
-                    <textarea id="inputBio" style="min-height: 60px;"></textarea>
-                    
-                    <div class="info-label">Gender:</div>
-                    <select id="inputGender">
-                        <option value="Laki-laki">Laki-laki</option>
-                        <option value="Perempuan">Perempuan</option>
-                        <option value="Rahasia">Rahasia</option>
-                    </select>
+                <div id="newsFeedBox">
+                    <div class="feed-item" id="emptyFeedText" style="text-align: center; color: var(--text-muted); padding: 30px 10px;">
+                        Belum ada postingan sama sekali.
+                    </div>
                 </div>
-            </div>
+            </section>
+
+            <section id="view-profile" class="view-section">
+                <div class="card profile-card-top">
+                    <button class="btn-action-profile" onclick="actionLogout()" style="color:var(--danger); border-color:var(--danger)">Logout</button>
+                    <div class="profile-large-avatar" id="profInitial">U</div>
+                    <h2 id="profDisplayTitle" style="font-size: 20px;">User Name</h2>
+                    <p id="profDisplayUser" style="color: var(--text-muted); font-size: 13px;">@username</p>
+                    
+                    <div class="profile-subtabs">
+                        <div class="subtab-btn active" id="sub-posts" onclick="toggleProfileSub('p-posts')">Postingan</div>
+                        <div class="subtab-btn" id="sub-info" onclick="toggleProfileSub('p-info')">Data Diri</div>
+                    </div>
+
+                    <div id="subContentPosts" class="p-subcontent active">
+                        <div id="profileMyFeed" style="color:gray; text-align:center; padding:15px; font-size:13px;">Belum ada arsip postingan.</div>
+                    </div>
+
+                    <div id="subContentInfo" class="p-subcontent">
+                        <div style="margin-bottom: 10px; overflow: hidden;">
+                            <button class="btn-action-profile" id="btnEditProfileState" onclick="toggleProfileEditSave()">Edit Data</button>
+                        </div>
+                        
+                        <div id="profileDataReadMode">
+                            <div class="info-row"><div class="info-lbl">Kota:</div><div id="lblKota">Jakarta, Indonesia</div></div>
+                            <div class="info-row"><div class="info-lbl">Umur:</div><div id="lblUmur">22 Tahun</div></div>
+                            <div class="info-row"><div class="info-lbl">Bio:</div><div id="lblBio">Web Developer</div></div>
+                            <div class="info-row"><div class="info-lbl">Gender:</div><div id="lblGender">Laki-laki</div></div>
+                        </div>
+
+                        <div id="profileDataEditMode" style="display: none;">
+                            <div class="info-row"><div class="info-lbl">Kota:</div><input type="text" id="inpKota" class="edit-fields"></div>
+                            <div class="info-row"><div class="info-lbl">Umur:</div><input type="number" id="inpUmur" class="edit-fields"></div>
+                            <div class="info-row"><div class="info-lbl">Bio:</div><textarea id="inpBio" class="edit-fields" style="height:50px; resize:none;"></textarea></div>
+                            <div class="info-row"><div class="info-lbl">Gender:</div>
+                                <select id="inpGender" class="edit-fields">
+                                    <option value="Laki-laki">Laki-laki</option>
+                                    <option value="Perempuan">Perempuan</option>
+                                    <option value="Rahasia">Rahasia</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-chat" class="view-section">
+                <div class="chat-layout">
+                    <div class="chat-list">
+                        <div class="chat-user-item"><strong>Budi Santoso</strong><br><small style="color:var(--success)">Online</small></div>
+                        <div class="chat-user-item" style="color:gray;">Siti Aminah<br><small>Offline</small></div>
+                    </div>
+                    <div class="chat-room">
+                        <div class="chat-window-header">
+                            <span>Budi Santoso</span>
+                            <div class="dropdown-chat">
+                                <button onclick="toggleChatDropdownMenu()"><i class="fas fa-ellipsis-v" style="color:var(--text-muted); font-size:16px; padding:5px;"></i></button>
+                                <div id="chatDropdownContent" class="dropdown-chat-menu">
+                                    <a onclick="alert('Membuka profil...')">Lihat Profil</a>
+                                    <a onclick="clearChatScreen()" style="color:var(--danger)">Bersihkan Chat</a>
+                                    <a onclick="alert('Pengguna diblokir')" style="color:var(--danger)">Blokir Pengguna</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-messages" id="chatMessageArea">
+                            <div class="chat-bubble left">Halo bro, bagaimana perkembangan web Neon X Hunter nya?</div>
+                        </div>
+                        <div class="chat-bottom-input">
+                            <input type="text" id="chatInputField" placeholder="Ketik pesan...">
+                            <button onclick="transmitMessage()" style="color:var(--nav-blue); font-size:18px; padding:0 5px;"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-notif" class="view-section">
+                <div class="card">
+                    <h3 style="font-size:16px; margin-bottom:10px;">Notifikasi</h3>
+                    <div style="font-size:14px; padding:10px 0; border-bottom:1px solid #f0f2f5; color:var(--text-muted);"><i class="fas fa-heart" style="color:var(--danger)"></i> Sistem mendeteksi web berjalan normal.</div>
+                </div>
+            </section>
+
         </div>
-
-        <div id="profileTabFriends" class="profile-tab-content">
-            <div class="card"><h3>Daftar Teman (1)</h3></div>
-        </div>
-    </main>
-
-    <main id="friends" class="view-container">
-        <div class="card"><h3>Permintaan Pertemanan (2)</h3></div>
-    </main>
-
-    <main id="notif" class="view-container">
-        <div class="card"><h3>Notifikasi</h3></div>
-    </main>
-
-    <main id="chat" class="view-container">
-        <div class="chat-container">
-            <div class="chat-sidebar"><div style="padding: 15px; font-weight: bold;">Daftar Chat</div></div>
-            <div class="chat-main">
-                <div class="chat-header"><strong>Budi Santoso</strong></div>
-                <div class="chat-body" id="chatArea"></div>
-                <div class="chat-input"><input type="text" placeholder="Ketik pesan..."></div>
-            </div>
-        </div>
-    </main>
+    </div>
 
     <script>
-        let currentUser = null;
-        let isEditMode = false;
+        let sessionUser = null;
+        let profileEditState = false;
+        
+        // Kamus Pemindai Typo Otomatis
+        const typoDictionary = { "aky": "aku", "km": "kamu", "sy": "saya", "dmn": "dimana" };
+        let activeTyposFound = {};
 
-        const dictionary = { "aky": "aku", "km": "kamu", "sy": "saya", "dmn": "dimana" };
-
-        function switchAuth(type) {
-            if (type === 'register') {
-                document.getElementById('loginView').style.display = 'none';
-                document.getElementById('registerView').style.display = 'block';
+        // INSIALISASI UTAMA: Berfungsi menahan Login agar TIDAK Hilang/Ke-logout otomatis
+        window.addEventListener('DOMContentLoaded', () => {
+            const preservedLogin = localStorage.getItem('active_session');
+            if (preservedLogin) {
+                sessionUser = JSON.parse(preservedLogin);
+                launchMainApplication();
             } else {
-                document.getElementById('loginView').style.display = 'block';
-                document.getElementById('registerView').style.display = 'none';
+                toggleAuthForms('log');
             }
-        }
-
-        function handleRegister(e) {
-            e.preventDefault();
-            const nama = document.getElementById('regNama').value;
-            const username = document.getElementById('regUser').value.trim();
-            const password = document.getElementById('regPass').value;
-
-            const userObj = {
-                nama: nama, username: username, password: password,
-                kota: "Belum ditentukan", umur: "20", bio: "Halo, saya pengguna baru!", gender: "Laki-laki"
-            };
-
-            localStorage.setItem('user_' + username.toLowerCase(), JSON.stringify(userObj));
-            alert("Akun berhasil didaftarkan! Silakan Login.");
-            switchAuth('login');
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const userInp = document.getElementById('loginUser').value.trim().toLowerCase();
-            const passInp = document.getElementById('loginPass').value;
-
-            const savedUser = localStorage.getItem('user_' + userInp);
-            if (savedUser) {
-                const parsed = JSON.parse(savedUser);
-                if (parsed.password === passInp) {
-                    executeLogin(parsed);
-                    return;
-                }
-            } else if (userInp === "admin" && passInp === "admin") {
-                executeLogin({
-                    nama: "User Termux", username: "admin", password: "admin",
-                    kota: "Jakarta, Indonesia", umur: "22", bio: "Developer Termux | Menyukai Koding & Kopi", gender: "Laki-laki"
-                });
-                return;
-            }
-            alert("Username atau Password salah!");
-        }
-
-        function executeLogin(userObject) {
-            currentUser = userObject;
-            document.getElementById('appBody').classList.remove('auth-page');
-            document.getElementById('loginView').style.display = 'none';
-            document.getElementById('registerView').style.display = 'none';
-            document.getElementById('mainNavbar').style.display = 'flex';
-            updateProfileUI();
-            switchView('home');
-        }
-
-        function handleLogout() {
-            currentUser = null;
-            document.getElementById('appBody').classList.add('auth-page');
-            document.getElementById('mainNavbar').style.display = 'none';
-            document.querySelectorAll('.view-container').forEach(el => el.style.display = 'none');
-            switchAuth('login');
-        }
-
-        function updateProfileUI() {
-            if(!currentUser) return;
-            document.getElementById('profileName').innerHTML = currentUser.nama + ' <i class="fas fa-check-circle" style="color: var(--primary-color); font-size:16px;"></i>';
-            document.getElementById('profileUsername').innerText = '@' + currentUser.username;
-            document.getElementById('profileBioShort').innerText = currentUser.bio;
-            
-            document.getElementById('valKota').innerText = currentUser.kota;
-            document.getElementById('valUmur').innerText = currentUser.umur + ' Tahun';
-            document.getElementById('valBio').innerText = currentUser.bio;
-            document.getElementById('valGender').innerText = currentUser.gender;
-
-            document.getElementById('inputKota').value = currentUser.kota;
-            document.getElementById('inputUmur').value = currentUser.umur;
-            document.getElementById('inputBio').value = currentUser.bio;
-            document.getElementById('inputGender').value = currentUser.gender;
-        }
-
-        function switchView(viewId) {
-            if(!currentUser) return;
-            document.querySelectorAll('.view-container').forEach(el => el.style.display = 'none');
-            document.getElementById(viewId).style.display = 'block';
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            const targetedBtn = document.getElementById('btn-' + viewId);
-            if(targetedBtn) targetedBtn.classList.add('active');
-        }
-
-        function switchProfileTab(tabName) {
-            document.querySelectorAll('.profile-tabs span').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.profile-tab-content').forEach(c => c.classList.remove('active'));
-            
-            if (tabName === 'posts') {
-                document.getElementById('tab-posts').classList.add('active');
-                document.getElementById('profileTabPosts').classList.add('active');
-            } else if (tabName === 'info') {
-                document.getElementById('tab-info').classList.add('active');
-                document.getElementById('profileTabInfo').classList.add('active');
-            } else if (tabName === 'p-friends') {
-                document.getElementById('tab-friends').classList.add('active');
-                document.getElementById('profileTabFriends').classList.add('active');
-            }
-        }
-
-        function toggleEditProfile() {
-            const viewDiv = document.getElementById('infoViewMode');
-            const editDiv = document.getElementById('infoEditMode');
-            const btn = document.getElementById('btnEditSave');
-
-            if (!isEditMode) {
-                viewDiv.style.display = 'none';
-                editDiv.style.display = 'grid';
-                btn.innerText = 'Simpan Data';
-                btn.style.background = 'var(--success)';
-                btn.style.color = '#fff';
-                isEditMode = true;
-            } else {
-                currentUser.kota = document.getElementById('inputKota').value;
-                currentUser.umur = document.getElementById('inputUmur').value;
-                currentUser.bio = document.getElementById('inputBio').value;
-                currentUser.gender = document.getElementById('inputGender').value;
-
-                localStorage.setItem('user_' + currentUser.username.toLowerCase(), JSON.stringify(currentUser));
-                
-                updateProfileUI();
-                viewDiv.style.display = 'grid';
-                editDiv.style.display = 'none';
-                btn.innerText = 'Edit Data Diri';
-                btn.style.background = 'var(--bg-color)';
-                btn.style.color = 'var(--text-main)';
-                isEditMode = false;
-                alert('Data diri berhasil diperbarui!');
-            }
-        }
-
-        // --- Fitur Pengetikan / Typo Scanner ---
-        const postText = document.getElementById('postText');
-        const typoAlert = document.getElementById('typoAlert');
-        const typoWordsSpan = document.getElementById('typoWords');
-        let currentTypos = {};
-
-        postText.addEventListener('input', function() {
-            let words = this.value.split(/[\s,.\n]+/);
-            currentTypos = {}; let found = false;
-            words.forEach(word => {
-                let lw = word.toLowerCase();
-                if (dictionary[lw]) { currentTypos[lw] = dictionary[lw]; found = true; }
-            });
-            if (found) {
-                typoWordsSpan.innerText = Object.keys(currentTypos).map(k => `"${k}"->${currentTypos[k]}`).join(", ");
-                typoAlert.style.display = 'flex';
-            } else { typoAlert.style.display = 'none'; }
         });
 
-        function fixAllTypos() {
-            let text = postText.value;
-            for (let wrong in currentTypos) {
-                let regex = new RegExp(`\\b${wrong}\\b`, "gi");
-                text = text.replace(regex, currentTypos[wrong]);
+        function toggleAuthForms(target) {
+            document.body.className = "auth-page";
+            document.getElementById('mainApplication').style.display = 'none';
+            if(target === 'reg') {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('registerSection').style.display = 'block';
+            } else {
+                document.getElementById('loginSection').style.display = 'block';
+                document.getElementById('registerSection').style.display = 'none';
             }
-            postText.value = text; typoAlert.style.display = 'none';
         }
 
-        function addNewPost() {
-            const content = postText.value.trim();
-            if(!content) return;
-            const feed = document.getElementById('feedContainer');
-            const myPosts = document.getElementById('myPostsContainer');
-            const postHTML = `<div class="card feed-post"><div class="post-header"><img src="https://via.placeholder.com/40" class="avatar"><div><strong>${currentUser.nama}</strong><br><small style="color: var(--text-muted)">Baru saja</small></div></div><div class="post-content">${content}</div></div>`;
+        function actionRegister(e) {
+            e.preventDefault();
+            const n = document.getElementById('regName').value;
+            const u = document.getElementById('regUser').value.trim().toLowerCase();
+            const p = document.getElementById('regPass').value;
+
+            const newAccount = {
+                nama: n, username: u, password: p,
+                kota: "Belum diset", umur: "20", bio: "Gamer & Developer", gender: "Laki-laki"
+            };
+            localStorage.setItem('db_' + u, JSON.stringify(newAccount));
+            alert("Pendaftaran berhasil! Silakan melakukan login.");
+            toggleAuthForms('log');
+        }
+
+        function actionLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('logUser').value.trim().toLowerCase();
+            const p = document.getElementById('logPass').value;
+
+            const internalDB = localStorage.getItem('db_' + u);
+            if(internalDB) {
+                const parsed = JSON.parse(internalDB);
+                if(parsed.password === p) {
+                    sessionUser = parsed;
+                    localStorage.setItem('active_session', JSON.stringify(sessionUser)); // Kunci login bertahan lama
+                    launchMainApplication();
+                    return;
+                }
+            } else if (u === 'admin' && p === 'admin') {
+                sessionUser = { nama: "Admin Hunter", username: "admin", password: "admin", kota: "Jakarta", umur: "24", bio: "Neon X Hunter Dev", gender: "Laki-laki" };
+                localStorage.setItem('active_session', JSON.stringify(sessionUser));
+                launchMainApplication();
+                return;
+            }
+            alert("Akses ditolak! Kombinasi salah.");
+        }
+
+        function launchMainApplication() {
+            document.body.className = "";
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('registerSection').style.display = 'none';
+            document.getElementById('mainApplication').style.display = 'block';
             
-            if(myPosts.innerText.includes("Belum ada postingan")) myPosts.innerHTML = "";
-            feed.insertAdjacentHTML('afterbegin', postHTML);
-            myPosts.insertAdjacentHTML('afterbegin', postHTML);
-            postText.value = ""; typoAlert.style.display = 'none';
+            // Atur huruf logo avatar atas kanan & Profil utama sesuai nama user
+            const firstLetter = sessionUser.nama.charAt(0).toUpperCase();
+            document.getElementById('navInitial').innerText = firstLetter;
+            document.getElementById('profInitial').innerText = firstLetter;
+            
+            refreshProfileScreen();
+            navigateTo('home');
         }
 
-        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+        function actionLogout() {
+            localStorage.removeItem('active_session'); // Hapus sesi pertahanan login
+            sessionUser = null;
+            toggleAuthForms('log');
+        }
+
+        // NAVIGATION SYSTEM INTERFACE
+        function navigateTo(targetView) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            
+            document.getElementById('view-' + targetView).classList.add('active');
+            document.getElementById('tab-' + targetView).classList.add('active');
+        }
+
+        // SCANNER PROSES TYPO KETIKA INPUT STATUS
+        const statusField = document.getElementById('statusField');
+        statusField.addEventListener('input', function() {
+            let brokenWords = this.value.split(/[\s,.\n]+/);
+            activeTyposFound = {};
+            let match = false;
+
+            brokenWords.forEach(word => {
+                let currentWord = word.toLowerCase();
+                if(typoDictionary[currentWord]) {
+                    activeTyposFound[currentWord] = typoDictionary[currentWord];
+                    match = true;
+                }
+            });
+
+            if(match) {
+                document.getElementById('typoLabelText').innerText = Object.keys(activeTyposFound).map(k => `"${k}" → ${activeTyposFound[k]}`).join(', ');
+                document.getElementById('typoAlertBox').style.display = 'flex';
+            } else {
+                document.getElementById('typoAlertBox').style.display = 'none';
+            }
+        });
+
+        function executeTypoFix() {
+            let content = statusField.value;
+            for(let key in activeTyposFound) {
+                let expression = new RegExp(`\\b${key}\\b`, "gi");
+                content = content.replace(expression, activeTyposFound[key]);
+            }
+            statusField.value = content;
+            document.getElementById('typoAlertBox').style.display = 'none';
+        }
+
+        // POSTING STATUS BARU
+        function publishNewPost() {
+            const inputTxt = statusField.value.trim();
+            if(!inputTxt) return;
+
+            const feedContainer = document.getElementById('newsFeedBox');
+            const myProfileFeed = document.getElementById('profileMyFeed');
+            const emptyTxt = document.getElementById('emptyFeedText');
+            if(emptyTxt) emptyTxt.remove();
+
+            const cardHTML = `
+                <div class="feed-item">
+                    <div class="feed-header">
+                        <div class="feed-avatar" style="background-color:var(--nav-blue)">${sessionUser.nama.charAt(0).toUpperCase()}</div>
+                        <div><strong>${sessionUser.nama}</strong><br><small style="color:var(--text-muted); font-size:11px;">Baru saja • Publik</small></div>
+                    </div>
+                    <div class="feed-body">${inputTxt}</div>
+                </div>`;
+
+            if(myProfileFeed.innerText.includes("Belum ada arsip")) myProfileFeed.innerHTML = "";
+            
+            feedContainer.insertAdjacentHTML('afterbegin', cardHTML);
+            myProfileFeed.insertAdjacentHTML('afterbegin', cardHTML);
+            statusField.value = "";
+            document.getElementById('typoAlertBox').style.display = 'none';
+        }
+
+        // MANAJEMEN TAB PROFIL & EDIT DATA DIRI
+        function toggleProfileSub(targetSub) {
+            document.querySelectorAll('.subtab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.p-subcontent').forEach(c => c.classList.remove('active'));
+            
+            if(targetSub === 'p-posts') {
+                document.getElementById('sub-posts').classList.add('active');
+                document.getElementById('subContentPosts').classList.add('active');
+            } else {
+                document.getElementById('sub-info').classList.add('active');
+                document.getElementById('subContentInfo').classList.add('active');
+            }
+        }
+
+        function refreshProfileScreen() {
+            document.getElementById('profDisplayTitle').innerText = sessionUser.nama;
+            document.getElementById('profDisplayUser').innerText = '@' + sessionUser.username;
+            
+            document.getElementById('lblKota').innerText = sessionUser.kota;
+            document.getElementById('lblUmur').innerText = sessionUser.umur + ' Tahun';
+            document.getElementById('lblBio').innerText = sessionUser.bio;
+            document.getElementById('lblGender').innerText = sessionUser.gender;
+        }
+
+        function toggleProfileEditSave() {
+            const readDiv = document.getElementById('profileDataReadMode');
+            const editDiv = document.getElementById('profileDataEditMode');
+            const actionBtn = document.getElementById('btnEditProfileState');
+
+            if(!profileEditState) {
+                readDiv.style.display = 'none';
+                editDiv.style.display = 'block';
+                actionBtn.innerText = "Simpan";
+                actionBtn.style.background = "var(--success)";
+                actionBtn.style.color = "white";
+                
+                document.getElementById('inpKota').value = sessionUser.kota;
+                document.getElementById('inpUmur').value = sessionUser.umur;
+                document.getElementById('inpBio').value = sessionUser.bio;
+                document.getElementById('inpGender').value = sessionUser.gender;
+                profileEditState = true;
+            } else {
+                sessionUser.kota = document.getElementById('inpKota').value;
+                sessionUser.umur = document.getElementById('inpUmur').value;
+                sessionUser.bio = document.getElementById('inpBio').value;
+                sessionUser.gender = document.getElementById('inpGender').value;
+
+                localStorage.setItem('db_' + sessionUser.username, JSON.stringify(sessionUser));
+                localStorage.setItem('active_session', JSON.stringify(sessionUser));
+                
+                refreshProfileScreen();
+                readDiv.style.display = 'block';
+                editDiv.style.display = 'none';
+                actionBtn.innerText = "Edit Data";
+                actionBtn.style.background = "#f0f2f5";
+                actionBtn.style.color = "var(--text-main)";
+                profileEditState = false;
+            }
+        }
+
+        // CHAT ENGINE PROCESSOR & DROPDOWN MENU
+        function toggleChatDropdownMenu() { document.getElementById('chatDropdownContent').classList.toggle('show'); }
+        window.onclick = function(event) { if (!event.target.matches('.fa-ellipsis-v')) { hideChatDropdown(); } }
+        function hideChatDropdown() { document.getElementById('chatDropdownContent').classList.remove('show'); }
+
+        function clearChatScreen() {
+            document.getElementById('chatMessageArea').innerHTML = '<div style="text-align:center; color:gray; font-size:12px;">Riwayat dibersihkan.</div>';
+            hideChatDropdown();
+        }
+
+        function transmitMessage() {
+            const chatInp = document.getElementById('chatInputField');
+            const chatMsg = chatInp.value.trim();
+            if(!chatMsg) return;
+
+            const area = document.getElementById('chatMessageArea');
+            const bubble = `<div class="chat-bubble right">${chatMsg}</div>`;
+            area.insertAdjacentHTML('beforeend', bubble);
+            chatInp.value = "";
+            area.scrollTop = area.scrollHeight;
+        }
     </script>
 </body>
 </html>
