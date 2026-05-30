@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SosmedKu</title>
-    <!-- FontAwesome untuk Ikon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* ================= CSS VARIABEL (TEMA) ================= */
@@ -37,20 +36,34 @@
         /* ================= RESET & DASAR ================= */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); transition: background 0.3s; padding-top: 60px; }
+        body.auth-page { padding-top: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         a { text-decoration: none; color: var(--primary-color); cursor: pointer; }
-        button { cursor: pointer; border: none; background: none; color: var(--text-main); }
-        input, textarea { background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 20px; padding: 10px 15px; outline: none; }
-        
+        button { cursor: pointer; border: none; background: none; color: var(--text-main); transition: all 0.2s; }
+        input, textarea, select { background: var(--surface-color); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 15px; outline: none; width: 100%; font-size: 14px; }
+        input:focus, textarea:focus, select:focus { border-color: var(--primary-color); }
+        hr { border: 0; border-top: 1px solid var(--border-color); margin: 15px 0; }
+
+        /* ================= HALAMAN AUTENTIKASI (LOGIN/DAFTAR) ================= */
+        .auth-container { width: 100%; max-width: 400px; padding: 25px; background: var(--surface-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; margin: 20px; }
+        .auth-logo { font-size: 32px; font-weight: bold; color: var(--primary-color); margin-bottom: 10px; }
+        .auth-title { font-size: 18px; color: var(--text-muted); margin-bottom: 25px; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: var(--text-muted); }
+        .auth-btn { background: var(--primary-color); color: white; font-weight: bold; padding: 12px; border-radius: 8px; width: 100%; font-size: 16px; margin-top: 10px; }
+        .auth-btn:hover { background: var(--primary-hover); }
+        .auth-switch { margin-top: 20px; font-size: 14px; color: var(--text-muted); }
+
         /* ================= NAVBAR (ATAS) ================= */
         .navbar {
             position: fixed; top: 0; left: 0; width: 100%; background: var(--surface-color);
             display: flex; justify-content: space-between; align-items: center;
             padding: 0 20px; height: 60px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 1000;
+            display: none; /* Tersembunyi sebelum login */
         }
         .nav-left { display: flex; align-items: center; gap: 15px; }
         .logo { font-size: 24px; font-weight: bold; color: var(--primary-color); }
         .search-bar { position: relative; }
-        .search-bar input { border-radius: 20px; padding-left: 35px; width: 250px; }
+        .search-bar input { border-radius: 20px; padding-left: 35px; width: 220px; }
         .search-bar i { position: absolute; left: 12px; top: 12px; color: var(--text-muted); }
         
         .nav-center { display: flex; gap: 10px; }
@@ -72,17 +85,15 @@
         }
 
         /* ================= STRUKTUR TAMPILAN (VIEWS) ================= */
-        .view-container { display: none; max-width: 700px; margin: 20px auto; }
-        .view-container.active { display: block; }
+        .view-container { display: none; max-width: 700px; margin: 20px auto; padding: 0 10px; }
         .card { background: var(--surface-color); border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 
-        /* ================= 1. BERANDA & TYPO SCANNER ================= */
+        /* ================= BERANDA & TYPO SCANNER ================= */
         .create-post textarea { width: 100%; border-radius: 10px; padding: 10px; resize: none; min-height: 80px; margin-bottom: 10px; font-size: 16px; }
         .post-options { display: flex; justify-content: space-between; align-items: center; }
-        .post-options select { padding: 5px 10px; border-radius: 5px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); }
+        .post-options select { padding: 5px 10px; border-radius: 5px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); width: auto; }
         .btn-post { background: var(--primary-color); color: white; padding: 8px 20px; border-radius: 5px; font-weight: bold; }
         
-        /* Typo Scanner Alert */
         .typo-alert { background: var(--typo-bg); color: var(--typo-text); padding: 10px; border-radius: 5px; margin-bottom: 10px; display: none; justify-content: space-between; align-items: center; font-size: 14px; }
         .typo-alert span { font-weight: bold; }
         .btn-fix { background: var(--primary-color); color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; }
@@ -93,35 +104,42 @@
         .post-actions { display: flex; border-top: 1px solid var(--border-color); padding-top: 10px; gap: 20px; color: var(--text-muted); }
         .post-actions span { cursor: pointer; display: flex; align-items: center; gap: 5px; }
 
-        /* ================= 2. PROFIL ================= */
-        .cover-photo { width: 100%; height: 200px; background: linear-gradient(45deg, #1877f2, #166fe5); border-radius: 10px 10px 0 0; }
+        /* ================= PROFIL & TAB DATA DIRI ================= */
+        .cover-photo { width: 100%; height: 180px; background: linear-gradient(45deg, #1877f2, #166fe5); border-radius: 10px 10px 0 0; }
         .profile-header { position: relative; text-align: center; margin-bottom: 20px; }
-        .profile-avatar { width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--surface-color); position: absolute; bottom: -60px; left: 50%; transform: translateX(-50%); background: #fff; }
-        .profile-info { margin-top: 70px; text-align: center; }
-        .profile-tabs { display: flex; justify-content: space-around; border-top: 1px solid var(--border-color); margin-top: 15px; padding-top: 10px; }
-        .profile-tabs span { font-weight: bold; color: var(--text-muted); cursor: pointer; padding: 10px; }
-        .profile-tabs span:hover { color: var(--primary-color); }
+        .profile-avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--surface-color); position: absolute; bottom: -55px; left: 50%; transform: translateX(-50%); background: #fff; object-fit: cover; }
+        .profile-info { margin-top: 65px; text-align: center; }
+        .profile-tabs { display: flex; justify-content: space-around; border-top: 1px solid var(--border-color); margin-top: 15px; }
+        .profile-tabs span { font-weight: bold; color: var(--text-muted); cursor: pointer; padding: 12px 5px; width: 100%; text-align: center; border-bottom: 2px solid transparent; }
+        .profile-tabs span.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        
+        .profile-tab-content { display: none; padding-top: 15px; }
+        .profile-tab-content.active { display: block; }
+        
+        /* Grid Data Diri */
+        .info-grid { display: grid; grid-template-columns: 120px 1fr; gap: 12px; align-items: center; }
+        .info-label { font-weight: bold; color: var(--text-muted); }
+        .info-value { font-size: 15px; }
+        .btn-edit-profile { background: var(--bg-color); color: var(--text-main); padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; border: 1px solid var(--border-color); float: right; margin-top: -5px; }
 
-        /* ================= 3. PERTEMANAN ================= */
+        /* ================= PERTEMANAN ================= */
         .friend-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-color); }
         .friend-info { display: flex; align-items: center; gap: 10px; }
         .friend-actions button { padding: 8px 15px; border-radius: 5px; font-weight: bold; margin-left: 5px; }
         .btn-accept { background: var(--primary-color); color: white; }
         .btn-decline { background: var(--bg-color); color: var(--text-main); }
 
-        /* ================= 4. NOTIFIKASI ================= */
+        /* ================= NOTIFIKASI ================= */
         .notif-item { display: flex; align-items: center; gap: 15px; padding: 10px 0; border-bottom: 1px solid var(--border-color); }
         .notif-item i { color: var(--primary-color); font-size: 20px; }
 
-        /* ================= 5. CHAT (TELEGRAM STYLE) ================= */
+        /* ================= CHAT ROOM ================= */
         .chat-container { display: flex; height: calc(100vh - 100px); background: var(--surface-color); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .chat-sidebar { width: 35%; border-right: 1px solid var(--border-color); overflow-y: auto; }
         .chat-main { width: 65%; display: flex; flex-direction: column; position: relative; }
-        
         .chat-list-item { display: flex; align-items: center; gap: 10px; padding: 15px; cursor: pointer; border-bottom: 1px solid var(--border-color); }
         .chat-list-item:hover { background: var(--bg-color); }
         .online-dot { width: 10px; height: 10px; background: var(--success); border-radius: 50%; display: inline-block; }
-        
         .chat-header { padding: 15px; background: var(--bg-color); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
         .chat-body { flex: 1; padding: 15px; overflow-y: auto; background: var(--bg-color); display: flex; flex-direction: column; gap: 10px; }
         .bubble { max-width: 70%; padding: 10px 15px; border-radius: 15px; position: relative; }
@@ -129,381 +147,386 @@
         .bubble.right { background: #dcf8c6; color: #000; align-self: flex-end; border-bottom-right-radius: 0; }
         .dark-mode .bubble.right { background: #005c4b; color: #fff; }
         .chat-status { font-size: 10px; color: gray; text-align: right; margin-top: 5px; }
-        
         .chat-input { padding: 10px; background: var(--surface-color); display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--border-color); }
         .chat-input input { flex: 1; border-radius: 20px; }
         .chat-input i { font-size: 20px; color: var(--text-muted); cursor: pointer; }
 
-        /* Menu Titik 3 Chat */
         .dropdown { position: relative; display: inline-block; }
         .dropdown-content { display: none; position: absolute; right: 0; top: 30px; background-color: var(--surface-color); min-width: 200px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); border-radius: 8px; z-index: 10; border: 1px solid var(--border-color); overflow: hidden; }
         .dropdown-content a { color: var(--text-main); padding: 12px 16px; text-decoration: none; display: block; font-size: 14px; }
         .dropdown-content a:hover { background-color: var(--bg-color); }
         .dropdown-content a i { margin-right: 10px; width: 15px; text-align: center; }
         .show { display: block; }
-
     </style>
 </head>
-<body>
+<body id="appBody" class="auth-page">
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
+    <div id="loginView" class="auth-container">
+        <div class="auth-logo">SosmedKu</div>
+        <div class="auth-title">Silakan login untuk masuk</div>
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="loginUser" placeholder="Masukkan username" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPass" placeholder="Masukkan password" required>
+            </div>
+            <button type="submit" class="auth-btn">Masuk</button>
+        </form>
+        <div class="auth-switch">
+            Belum punya akun? <a onclick="switchAuth('register')">Daftar Menu</a>
+        </div>
+    </div>
+
+    <div id="registerView" class="auth-container" style="display: none;">
+        <div class="auth-logo">SosmedKu</div>
+        <div class="auth-title">Buat akun baru</div>
+        <form onsubmit="handleRegister(event)">
+            <div class="form-group">
+                <label>Nama Lengkap</label>
+                <input type="text" id="regNama" placeholder="Nama lengkap Anda" required>
+            </div>
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="regUser" placeholder="Buat username" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="regPass" placeholder="Buat password" required>
+            </div>
+            <button type="submit" class="auth-btn">Daftar Akun</button>
+        </form>
+        <div class="auth-switch">
+            Sudah punya akun? <a onclick="switchAuth('login')">Login disini</a>
+        </div>
+    </div>
+
+    <nav class="navbar" id="mainNavbar">
         <div class="nav-left">
             <div class="logo">SosmedKu</div>
-            <div class="search-bar">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Cari teman, grup, atau postingan...">
-            </div>
+            <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Cari..."></div>
         </div>
         <div class="nav-center">
-            <button class="nav-btn active" onclick="switchView('home')" title="Beranda"><i class="fas fa-home"></i></button>
-            <button class="nav-btn" onclick="switchView('friends')" title="Pertemanan"><i class="fas fa-user-friends"></i><span class="badge">2</span></button>
-            <button class="nav-btn" onclick="switchView('chat')" title="Chat"><i class="fab fa-telegram-plane"></i><span class="badge" id="chatBadge">3</span></button>
-            <button class="nav-btn" onclick="switchView('notif')" title="Notifikasi"><i class="fas fa-bell"></i><span class="badge" id="notifBadge">5</span></button>
-            <button class="nav-btn" onclick="switchView('profile')" title="Profil"><i class="fas fa-user-circle"></i></button>
+            <button class="nav-btn active" id="btn-home" onclick="switchView('home')"><i class="fas fa-home"></i></button>
+            <button class="nav-btn" id="btn-friends" onclick="switchView('friends')"><i class="fas fa-user-friends"></i><span class="badge">2</span></button>
+            <button class="nav-btn" id="btn-chat" onclick="switchView('chat')"><i class="fab fa-telegram-plane"></i><span class="badge">3</span></button>
+            <button class="nav-btn" id="btn-notif" onclick="switchView('notif')"><i class="fas fa-bell"></i><span class="badge">5</span></button>
+            <button class="nav-btn" id="btn-profile" onclick="switchView('profile')"><i class="fas fa-user-circle"></i></button>
         </div>
         <div class="nav-right">
-            <button class="icon-btn" onclick="toggleDarkMode()" title="Mode Gelap"><i class="fas fa-moon"></i></button>
+            <button class="icon-btn" onclick="toggleDarkMode()"><i class="fas fa-moon"></i></button>
+            <button class="icon-btn" onclick="handleLogout()" title="Keluar" style="color: var(--danger); margin-left: 5px;"><i class="fas fa-sign-out-alt"></i></button>
         </div>
     </nav>
 
-    <!-- 1. BERANDA (HOME) -->
-    <main id="home" class="view-container active">
-        <!-- Buat Status & Typo Scanner -->
+    <main id="home" class="view-container">
         <div class="card create-post">
             <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <img src="https://via.placeholder.com/40" class="avatar" alt="User">
-                <textarea id="postText" placeholder="Apa yang Anda pikirkan? (Coba ketik typo: aky, km, sy, dmn)"></textarea>
+                <img src="https://via.placeholder.com/40" class="avatar">
+                <textarea id="postText" placeholder="Uji typo di sini: aky, km, sy, dmn"></textarea>
             </div>
-            
-            <!-- Alert Typo Scanner -->
             <div id="typoAlert" class="typo-alert">
                 <div><i class="fas fa-exclamation-triangle"></i> Typo terdeteksi: <span id="typoWords"></span></div>
                 <button class="btn-fix" onclick="fixAllTypos()">Perbaiki Semua</button>
             </div>
-
             <div class="post-options">
                 <div>
-                    <button class="icon-btn" style="display:inline-flex; color: #45bd62;"><i class="fas fa-image"></i></button>
-                    <button class="icon-btn" style="display:inline-flex; color: #f3425f;"><i class="fas fa-video"></i></button>
                     <select id="privacy">
                         <option value="public">🌎 Publik</option>
                         <option value="friends">👥 Teman</option>
-                        <option value="private">🔒 Hanya Saya</option>
                     </select>
                 </div>
-                <button class="btn-post">Posting</button>
+                <button class="btn-post" onclick="addNewPost()">Posting</button>
             </div>
         </div>
-
-        <!-- Feed Postingan -->
-        <div class="card feed-post">
-            <div class="post-header">
-                <img src="https://via.placeholder.com/40" class="avatar" alt="Teman">
-                <div>
-                    <strong>Budi Santoso</strong><br>
-                    <small style="color: var(--text-muted)">Baru saja • 🌎 Publik</small>
+        <div id="feedContainer">
+            <div class="card feed-post">
+                <div class="post-header">
+                    <img src="https://via.placeholder.com/40" class="avatar">
+                    <div><strong>Budi Santoso</strong><br><small style="color: var(--text-muted)">Baru saja • 🌎 Publik</small></div>
                 </div>
-            </div>
-            <div class="post-content">
-                Halo semuanya! Selamat datang di web sosial media baru kita. Cuacanya cerah banget hari ini! ☀️
-            </div>
-            <div class="post-actions">
-                <span><i class="far fa-thumbs-up"></i> Suka</span>
-                <span><i class="far fa-comment"></i> Komentar</span>
-                <span><i class="fas fa-share"></i> Bagikan</span>
+                <div class="post-content">Selamat datang di SosmedKu! Fitur Login dan Data Diri sukses diperbarui.</div>
+                <div class="post-actions"><span><i class="far fa-thumbs-up"></i> Suka</span><span><i class="far fa-comment"></i> Komentar</span></div>
             </div>
         </div>
     </main>
 
-    <!-- 2. PROFIL -->
     <main id="profile" class="view-container">
         <div class="card" style="padding: 0; overflow: hidden;">
             <div class="cover-photo"></div>
             <div class="profile-header">
-                <img src="https://via.placeholder.com/120" class="profile-avatar" alt="Profile">
+                <img src="https://via.placeholder.com/110" class="profile-avatar" id="profileAvatar">
             </div>
             <div class="profile-info">
-                <h2>Nama Pengguna <i class="fas fa-check-circle" style="color: var(--primary-color); font-size:16px;"></i></h2>
-                <p style="color: var(--text-muted)">@username_keren</p>
-                <p style="margin: 10px 0;">Developer Termux | Menyukai Koding & Kopi ☕</p>
-                <p style="color: var(--text-muted); font-size: 14px;">
-                    <i class="fas fa-calendar-alt"></i> Bergabung Mei 2026 • <i class="fas fa-home"></i> Jakarta, Indonesia
-                </p>
+                <h2 id="profileName">Nama <i class="fas fa-check-circle" style="color: var(--primary-color); font-size:16px;"></i></h2>
+                <p style="color: var(--text-muted)" id="profileUsername">@username</p>
+                <p style="margin: 10px 0;" id="profileBioShort">Halo dunia!</p>
             </div>
             <div class="profile-tabs">
-                <span>Postingan</span>
-                <span>Foto/Video</span>
-                <span>Teman</span>
-                <span>Tentang</span>
+                <span id="tab-posts" class="active" onclick="switchProfileTab('posts')">Postingan</span>
+                <span id="tab-info" onclick="switchProfileTab('info')">Data Diri</span>
+                <span id="tab-friends" onclick="switchProfileTab('p-friends')">Teman</span>
             </div>
         </div>
-        <div class="card text-center text-muted">
-            Belum ada postingan untuk ditampilkan.
+
+        <div id="profileTabPosts" class="profile-tab-content active">
+            <div id="myPostsContainer">
+                <div class="card" style="color: var(--text-muted); padding: 20px; text-align: center;">Belum ada postingan pribadi.</div>
+            </div>
+        </div>
+
+        <div id="profileTabInfo" class="profile-tab-content">
+            <div class="card">
+                <button class="btn-edit-profile" id="btnEditSave" onclick="toggleEditProfile()">Edit Data Diri</button>
+                <h3 style="margin-bottom: 15px;"><i class="fas fa-id-card" style="color: var(--primary-color); margin-right: 8px;"></i> Menu Data Diri</h3>
+                
+                <div id="infoViewMode" class="info-grid">
+                    <div class="info-label">Kota:</div>
+                    <div class="info-value" id="valKota">Jakarta, Indonesia</div>
+                    
+                    <div class="info-label">Umur:</div>
+                    <div class="info-value" id="valUmur">22 Tahun</div>
+                    
+                    <div class="info-label">Bio:</div>
+                    <div class="info-value" id="valBio">Menyukai Koding & Kopi</div>
+                    
+                    <div class="info-label">Gender:</div>
+                    <div class="info-value" id="valGender">Laki-laki</div>
+                </div>
+
+                <div id="infoEditMode" class="info-grid" style="display: none;">
+                    <div class="info-label">Kota:</div>
+                    <input type="text" id="inputKota">
+                    
+                    <div class="info-label">Umur:</div>
+                    <input type="number" id="inputUmur">
+                    
+                    <div class="info-label">Bio:</div>
+                    <textarea id="inputBio" style="min-height: 60px;"></textarea>
+                    
+                    <div class="info-label">Gender:</div>
+                    <select id="inputGender">
+                        <option value="Laki-laki">Laki-laki</option>
+                        <option value="Perempuan">Perempuan</option>
+                        <option value="Rahasia">Rahasia</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div id="profileTabFriends" class="profile-tab-content">
+            <div class="card"><h3>Daftar Teman (1)</h3></div>
         </div>
     </main>
 
-    <!-- 3. PERTEMANAN -->
     <main id="friends" class="view-container">
-        <div class="card">
-            <h3>Permintaan Pertemanan (2)</h3>
-            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
-            <div class="friend-item">
-                <div class="friend-info">
-                    <img src="https://via.placeholder.com/50" class="avatar" style="width: 50px; height: 50px;" alt="User">
-                    <div>
-                        <strong>Siti Aminah</strong><br>
-                        <small style="color: var(--text-muted)">12 Teman Sama</small>
-                    </div>
-                </div>
-                <div class="friend-actions">
-                    <button class="btn-accept">Terima</button>
-                    <button class="btn-decline">Hapus</button>
-                </div>
-            </div>
-            <div class="friend-item">
-                <div class="friend-info">
-                    <img src="https://via.placeholder.com/50" class="avatar" style="width: 50px; height: 50px;" alt="User">
-                    <div>
-                        <strong>Andi Saputra</strong><br>
-                        <small style="color: var(--text-muted)">3 Teman Sama</small>
-                    </div>
-                </div>
-                <div class="friend-actions">
-                    <button class="btn-accept">Terima</button>
-                    <button class="btn-decline">Hapus</button>
-                </div>
-            </div>
-        </div>
-        <div class="card">
-            <h3>Orang yang Mungkin Anda Kenal</h3>
-            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
-            <!-- Rekomendasi teman -->
-            <div class="friend-item">
-                <div class="friend-info">
-                    <img src="https://via.placeholder.com/50" class="avatar" style="width: 50px; height: 50px;" alt="User">
-                    <div>
-                        <strong>Dewi Lestari</strong><br>
-                        <small style="color: var(--text-muted)">Rekomendasi</small>
-                    </div>
-                </div>
-                <div class="friend-actions">
-                    <button class="btn-accept"><i class="fas fa-user-plus"></i> Tambahkan</button>
-                </div>
-            </div>
-        </div>
+        <div class="card"><h3>Permintaan Pertemanan (2)</h3></div>
     </main>
 
-    <!-- 4. NOTIFIKASI -->
     <main id="notif" class="view-container">
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3>Notifikasi</h3>
-                <a href="#" onclick="clearNotifBadge()">Tandai semua dibaca</a>
-            </div>
-            <div class="notif-item">
-                <i class="fas fa-heart" style="color: var(--danger)"></i>
-                <div>
-                    <strong>Budi Santoso</strong> menyukai postingan Anda.
-                    <br><small style="color: var(--text-muted)">10 menit yang lalu</small>
-                </div>
-            </div>
-            <div class="notif-item">
-                <i class="fas fa-comment"></i>
-                <div>
-                    <strong>Siti Aminah</strong> mengomentari foto profil Anda.
-                    <br><small style="color: var(--text-muted)">1 jam yang lalu</small>
-                </div>
-            </div>
-            <div class="notif-item">
-                <i class="fas fa-user-friends"></i>
-                <div>
-                    <strong>Andi Saputra</strong> mengirimkan permintaan pertemanan.
-                    <br><small style="color: var(--text-muted)">2 jam yang lalu</small>
-                </div>
-            </div>
-        </div>
+        <div class="card"><h3>Notifikasi</h3></div>
     </main>
 
-    <!-- 5. CHAT (TELEGRAM STYLE) -->
-    <main id="chat" class="view-container" style="max-width: 900px;">
+    <main id="chat" class="view-container">
         <div class="chat-container">
-            <!-- Sidebar -->
-            <div class="chat-sidebar">
-                <div style="padding: 15px; font-weight: bold; border-bottom: 1px solid var(--border-color);">Obrolan Terbaru</div>
-                <div class="chat-list-item">
-                    <img src="https://via.placeholder.com/40" class="avatar" alt="User">
-                    <div style="flex: 1;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <strong>Budi Santoso <span class="online-dot"></span></strong>
-                            <small style="color: var(--text-muted)">10:45</small>
-                        </div>
-                        <small style="color: var(--text-muted)">Baik, file sudah saya kirim ya.</small>
-                    </div>
-                </div>
-                <div class="chat-list-item">
-                    <img src="https://via.placeholder.com/40" class="avatar" alt="User">
-                    <div style="flex: 1;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <strong>Grup Mabar Termux</strong>
-                            <small style="color: var(--text-muted)">Kemarin</small>
-                        </div>
-                        <small style="color: var(--text-muted)">Siapa yang online malam ini?</small>
-                    </div>
-                </div>
-            </div>
-            <!-- Chat Room -->
+            <div class="chat-sidebar"><div style="padding: 15px; font-weight: bold;">Daftar Chat</div></div>
             <div class="chat-main">
-                <div class="chat-header">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="https://via.placeholder.com/40" class="avatar" alt="User">
-                        <div>
-                            <strong>Budi Santoso</strong><br>
-                            <small style="color: var(--success)">Online</small>
-                        </div>
-                    </div>
-                    <!-- MENU TITIK 3 (Dropdown) -->
-                    <div class="dropdown">
-                        <button class="icon-btn" onclick="toggleChatMenu()"><i class="fas fa-ellipsis-v"></i></button>
-                        <div id="chatDropdown" class="dropdown-content">
-                            <a href="#" onclick="switchView('profile'); hideChatMenu()"><i class="fas fa-user"></i> Lihat Profil</a>
-                            <a href="#"><i class="fas fa-search"></i> Cari Pesan</a>
-                            <a href="#"><i class="fas fa-broom"></i> Bersihkan Riwayat</a>
-                            <a href="#"><i class="fas fa-bell-slash"></i> Bisukan Notifikasi</a>
-                            <a href="#"><i class="fas fa-thumbtack"></i> Sematkan Chat</a>
-                            <a href="#" style="color: var(--danger);"><i class="fas fa-ban"></i> Blokir Pengguna</a>
-                            <a href="#" style="color: var(--danger);"><i class="fas fa-trash-alt"></i> Hapus Obrolan</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="chat-body">
-                    <div class="bubble left">
-                        Halo bro, ada waktu buat koding bareng?
-                        <div class="chat-status">10:40</div>
-                    </div>
-                    <div class="bubble right">
-                        Bisa bro, mau lanjutin project web Termux yang kemarin kan?
-                        <div class="chat-status">10:42 <i class="fas fa-check-double" style="color:#53bdeb;"></i></div>
-                    </div>
-                    <div class="bubble left">
-                        Siap. Nanti jam 8 malam ya.
-                        <div class="chat-status">10:45</div>
-                    </div>
-                    <!-- Pesan yang Ditarik (Simulasi) -->
-                    <div class="bubble right" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); font-style: italic;">
-                        <i class="fas fa-ban"></i> Pesan ini telah ditarik
-                    </div>
-                </div>
-                <div class="chat-input">
-                    <i class="fas fa-paperclip" title="Kirim File"></i>
-                    <i class="far fa-smile" title="Stiker/GIF"></i>
-                    <input type="text" placeholder="Ketik pesan...">
-                    <i class="fas fa-microphone" title="Voice Note"></i>
-                    <i class="fas fa-paper-plane" style="color: var(--primary-color);"></i>
-                </div>
+                <div class="chat-header"><strong>Budi Santoso</strong></div>
+                <div class="chat-body" id="chatArea"></div>
+                <div class="chat-input"><input type="text" placeholder="Ketik pesan..."></div>
             </div>
         </div>
     </main>
 
-    <!-- ================= JAVASCRIPT LOGIC ================= -->
     <script>
-        // 1. NAVIGASI MENU (SWITCH VIEW)
-        function switchView(viewId) {
-            // Sembunyikan semua konten
-            document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
-            // Tampilkan konten yg dipilih
-            document.getElementById(viewId).classList.add('active');
+        let currentUser = null;
+        let isEditMode = false;
+
+        const dictionary = { "aky": "aku", "km": "kamu", "sy": "saya", "dmn": "dimana" };
+
+        function switchAuth(type) {
+            if (type === 'register') {
+                document.getElementById('loginView').style.display = 'none';
+                document.getElementById('registerView').style.display = 'block';
+            } else {
+                document.getElementById('loginView').style.display = 'block';
+                document.getElementById('registerView').style.display = 'none';
+            }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const nama = document.getElementById('regNama').value;
+            const username = document.getElementById('regUser').value.trim();
+            const password = document.getElementById('regPass').value;
+
+            const userObj = {
+                nama: nama, username: username, password: password,
+                kota: "Belum ditentukan", umur: "20", bio: "Halo, saya pengguna baru!", gender: "Laki-laki"
+            };
+
+            localStorage.setItem('user_' + username.toLowerCase(), JSON.stringify(userObj));
+            alert("Akun berhasil didaftarkan! Silakan Login.");
+            switchAuth('login');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const userInp = document.getElementById('loginUser').value.trim().toLowerCase();
+            const passInp = document.getElementById('loginPass').value;
+
+            const savedUser = localStorage.getItem('user_' + userInp);
+            if (savedUser) {
+                const parsed = JSON.parse(savedUser);
+                if (parsed.password === passInp) {
+                    executeLogin(parsed);
+                    return;
+                }
+            } else if (userInp === "admin" && passInp === "admin") {
+                executeLogin({
+                    nama: "User Termux", username: "admin", password: "admin",
+                    kota: "Jakarta, Indonesia", umur: "22", bio: "Developer Termux | Menyukai Koding & Kopi", gender: "Laki-laki"
+                });
+                return;
+            }
+            alert("Username atau Password salah!");
+        }
+
+        function executeLogin(userObject) {
+            currentUser = userObject;
+            document.getElementById('appBody').classList.remove('auth-page');
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('registerView').style.display = 'none';
+            document.getElementById('mainNavbar').style.display = 'flex';
+            updateProfileUI();
+            switchView('home');
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            document.getElementById('appBody').classList.add('auth-page');
+            document.getElementById('mainNavbar').style.display = 'none';
+            document.querySelectorAll('.view-container').forEach(el => el.style.display = 'none');
+            switchAuth('login');
+        }
+
+        function updateProfileUI() {
+            if(!currentUser) return;
+            document.getElementById('profileName').innerHTML = currentUser.nama + ' <i class="fas fa-check-circle" style="color: var(--primary-color); font-size:16px;"></i>';
+            document.getElementById('profileUsername').innerText = '@' + currentUser.username;
+            document.getElementById('profileBioShort').innerText = currentUser.bio;
             
-            // Ubah state tombol navbar
+            document.getElementById('valKota').innerText = currentUser.kota;
+            document.getElementById('valUmur').innerText = currentUser.umur + ' Tahun';
+            document.getElementById('valBio').innerText = currentUser.bio;
+            document.getElementById('valGender').innerText = currentUser.gender;
+
+            document.getElementById('inputKota').value = currentUser.kota;
+            document.getElementById('inputUmur').value = currentUser.umur;
+            document.getElementById('inputBio').value = currentUser.bio;
+            document.getElementById('inputGender').value = currentUser.gender;
+        }
+
+        function switchView(viewId) {
+            if(!currentUser) return;
+            document.querySelectorAll('.view-container').forEach(el => el.style.display = 'none');
+            document.getElementById(viewId).style.display = 'block';
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            const targetedBtn = document.getElementById('btn-' + viewId);
+            if(targetedBtn) targetedBtn.classList.add('active');
         }
 
-        // 2. MODE GELAP (DARK MODE)
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
+        function switchProfileTab(tabName) {
+            document.querySelectorAll('.profile-tabs span').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.profile-tab-content').forEach(c => c.classList.remove('active'));
+            
+            if (tabName === 'posts') {
+                document.getElementById('tab-posts').classList.add('active');
+                document.getElementById('profileTabPosts').classList.add('active');
+            } else if (tabName === 'info') {
+                document.getElementById('tab-info').classList.add('active');
+                document.getElementById('profileTabInfo').classList.add('active');
+            } else if (tabName === 'p-friends') {
+                document.getElementById('tab-friends').classList.add('active');
+                document.getElementById('profileTabFriends').classList.add('active');
+            }
         }
 
-        // 3. FITUR SCANNER TYPO
-        // Kamus sederhana kata salah ketik dan benarnya
-        const dictionary = {
-            "aky": "aku",
-            "km": "kamu",
-            "sy": "saya",
-            "dmn": "dimana",
-            "kpn": "kapan",
-            "yg": "yang",
-            "bgt": "banget"
-        };
+        function toggleEditProfile() {
+            const viewDiv = document.getElementById('infoViewMode');
+            const editDiv = document.getElementById('infoEditMode');
+            const btn = document.getElementById('btnEditSave');
 
+            if (!isEditMode) {
+                viewDiv.style.display = 'none';
+                editDiv.style.display = 'grid';
+                btn.innerText = 'Simpan Data';
+                btn.style.background = 'var(--success)';
+                btn.style.color = '#fff';
+                isEditMode = true;
+            } else {
+                currentUser.kota = document.getElementById('inputKota').value;
+                currentUser.umur = document.getElementById('inputUmur').value;
+                currentUser.bio = document.getElementById('inputBio').value;
+                currentUser.gender = document.getElementById('inputGender').value;
+
+                localStorage.setItem('user_' + currentUser.username.toLowerCase(), JSON.stringify(currentUser));
+                
+                updateProfileUI();
+                viewDiv.style.display = 'grid';
+                editDiv.style.display = 'none';
+                btn.innerText = 'Edit Data Diri';
+                btn.style.background = 'var(--bg-color)';
+                btn.style.color = 'var(--text-main)';
+                isEditMode = false;
+                alert('Data diri berhasil diperbarui!');
+            }
+        }
+
+        // --- Fitur Pengetikan / Typo Scanner ---
         const postText = document.getElementById('postText');
         const typoAlert = document.getElementById('typoAlert');
         const typoWordsSpan = document.getElementById('typoWords');
         let currentTypos = {};
 
         postText.addEventListener('input', function() {
-            let text = this.value;
-            let words = text.split(/[\s,.\n]+/); // Pisahkan berdasarkan spasi atau tanda baca
-            currentTypos = {};
-            
-            let found = false;
+            let words = this.value.split(/[\s,.\n]+/);
+            currentTypos = {}; let found = false;
             words.forEach(word => {
-                let lowerWord = word.toLowerCase();
-                if (dictionary[lowerWord]) {
-                    currentTypos[lowerWord] = dictionary[lowerWord];
-                    found = true;
-                }
+                let lw = word.toLowerCase();
+                if (dictionary[lw]) { currentTypos[lw] = dictionary[lw]; found = true; }
             });
-
             if (found) {
-                // Tampilkan alert
-                let suggestions = Object.keys(currentTypos).map(k => `"${k}" (Maksud kamu: ${currentTypos[k]}?)`).join(", ");
-                typoWordsSpan.innerText = suggestions;
+                typoWordsSpan.innerText = Object.keys(currentTypos).map(k => `"${k}"->${currentTypos[k]}`).join(", ");
                 typoAlert.style.display = 'flex';
-            } else {
-                typoAlert.style.display = 'none';
-            }
+            } else { typoAlert.style.display = 'none'; }
         });
 
-        // Tombol Perbaiki Semua
         function fixAllTypos() {
             let text = postText.value;
-            // Replace kata typo dengan kata benar menggunakan RegExp
             for (let wrong in currentTypos) {
-                let right = currentTypos[wrong];
-                let regex = new RegExp(`\\b${wrong}\\b`, "gi"); // \b memastikan per kata penuh, bukan potongan kata
-                text = text.replace(regex, right);
+                let regex = new RegExp(`\\b${wrong}\\b`, "gi");
+                text = text.replace(regex, currentTypos[wrong]);
             }
-            postText.value = text;
-            typoAlert.style.display = 'none';
+            postText.value = text; typoAlert.style.display = 'none';
         }
 
-        // 4. MENU TITIK 3 CHAT (DROPDOWN)
-        function toggleChatMenu() {
-            document.getElementById("chatDropdown").classList.toggle("show");
-        }
-        function hideChatMenu() {
-            document.getElementById("chatDropdown").classList.remove("show");
-        }
-
-        // Tutup dropdown jika klik di luar
-        window.onclick = function(event) {
-            if (!event.target.matches('.fa-ellipsis-v') && !event.target.matches('.icon-btn')) {
-                var dropdowns = document.getElementsByClassName("dropdown-content");
-                for (var i = 0; i < dropdowns.length; i++) {
-                    var openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
-                    }
-                }
-            }
+        function addNewPost() {
+            const content = postText.value.trim();
+            if(!content) return;
+            const feed = document.getElementById('feedContainer');
+            const myPosts = document.getElementById('myPostsContainer');
+            const postHTML = `<div class="card feed-post"><div class="post-header"><img src="https://via.placeholder.com/40" class="avatar"><div><strong>${currentUser.nama}</strong><br><small style="color: var(--text-muted)">Baru saja</small></div></div><div class="post-content">${content}</div></div>`;
+            
+            if(myPosts.innerText.includes("Belum ada postingan")) myPosts.innerHTML = "";
+            feed.insertAdjacentHTML('afterbegin', postHTML);
+            myPosts.insertAdjacentHTML('afterbegin', postHTML);
+            postText.value = ""; typoAlert.style.display = 'none';
         }
 
-        // 5. MANAJEMEN NOTIFIKASI
-        function clearNotifBadge() {
-            document.getElementById('notifBadge').style.display = 'none';
-            alert("Semua notifikasi telah ditandai dibaca.");
-        }
+        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
     </script>
 </body>
 </html>
