@@ -2,327 +2,43 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyCloud - Global Server Fix</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .tab-content, .dl-tab { display: none; }
-        .tab-content.active, .dl-tab.active { display: block; }
-    </style>
-</head>
-<body class="bg-gray-900 text-white font-sans antialiased">
+    <title>MyCloud - Fast Storage</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js";
 
-    <div id="authPage" class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
-            <h2 id="authTitle" class="text-3xl font-bold text-center text-blue-400 mb-6">Login MyCloud</h2>
-            <div id="authAlert" class="mb-4 text-sm text-center hidden p-2 rounded"></div>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzjnGbpvLOeD9qEtSrjXpwZN4GPItU1wA",
+            authDomain: "mycloud-649c5.firebaseapp.com",
+            projectId: "mycloud-649c5",
+            storageBucket: "mycloud-649c5.firebasestorage.app",
+            messagingSenderId: "792370200055",
+            appId: "1:792370200055:web:975757a5425d2a0a5282f2",
+            measurementId: "G-9ZMVC57VVS"
+        };
 
-            <div class="mb-4">
-                <label class="block text-gray-300 mb-2">Username</label>
-                <input type="text" id="userInput" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500" placeholder="Masukkan username">
-            </div>
-            <div class="mb-6">
-                <label class="block text-gray-300 mb-2">Password</label>
-                <input type="password" id="passInput" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500" placeholder="Masukkan password">
-            </div>
+        const app = initializeApp(firebaseConfig);
+        const storage = getStorage(app);
 
-            <button onclick="handleAuth()" id="btnAuth" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded transition">
-                MASUK
-            </button>
-            <p class="text-center text-sm text-gray-400 mt-4">
-                <span id="authSwitchText">Belum punya akun?</span> 
-                <button onclick="switchAuthMode()" id="btnSwitch" class="text-blue-400 underline ml-1">Daftar</button>
-            </p>
-        </div>
-    </div>
-
-    <div id="dashboardPage" class="hidden">
-        <nav class="bg-gray-800 p-4 shadow-lg flex justify-between items-center">
-            <h1 class="text-xl font-bold text-blue-400">MyCloud</h1>
-            <div class="flex items-center space-x-3">
-                <div class="flex flex-col items-end">
-                    <span id="userNameDisplay" class="text-sm font-bold text-gray-200">User</span>
-                    <button onclick="logout()" class="text-xs text-red-400 hover:underline">Keluar</button>
-                </div>
-                <div id="profile-pic" class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-lg font-bold border-2 border-blue-400">U</div>
-            </div>
-        </nav>
-
-        <div class="max-w-4xl mx-auto mt-8 p-4">
-            <div class="flex space-x-4 border-b border-gray-700 pb-2 mb-6 overflow-x-auto">
-                <button onclick="openTab('upload')" id="tabBtn-upload" class="text-blue-400 font-semibold pb-2 border-b-2 border-blue-400">Upload File</button>
-                <button onclick="openTab('download')" id="tabBtn-download" class="text-gray-400 font-semibold pb-2 hover:text-green-400">Download Global</button>
-                <button onclick="openTab('myfiles')" id="tabBtn-myfiles" class="text-gray-400 font-semibold pb-2 hover:text-yellow-400">File Saya</button>
-            </div>
-
-            <div id="upload" class="tab-content active bg-gray-800 p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl mb-4 font-bold">Upload ke Cloud Publik</h2>
-                <p class="text-gray-400 text-sm mb-4">File beneran terkirim ke server internet awan publik!</p>
-                <div id="uploadAlert" class="mb-4 text-sm hidden p-2 rounded"></div>
-
-                <label class="block mb-2">Pilih Kategori Tujuan:</label>
-                <select id="kategori" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mb-4 focus:outline-none">
-                    <option value="config">Config</option>
-                    <option value="foto">Foto</option>
-                    <option value="script">Script</option>
-                    <option value="document">Document</option>
-                </select>
-
-                <input type="file" id="fileInput" class="hidden" onchange="updateFileLabel()">
-                <button onclick="document.getElementById('fileInput').click()" id="fileLabelBtn" class="border-2 border-dashed border-gray-600 hover:border-blue-500 p-6 rounded text-center w-full mb-4 block text-gray-400">
-                    Klik untuk Pilih File...
-                </button>
-                
-                <button onclick="startTelegramUpload()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-3 rounded w-full transition">
-                    Mulai Upload ke Server
-                </button>
-
-                <div id="loadingArea" class="mt-4 hidden">
-                    <p class="text-sm mb-1 text-blue-400" id="uploadStatus">Menghubungkan ke server...</p>
-                    <div class="w-full bg-gray-700 rounded-full h-2.5 overflow-hidden">
-                        <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="download" class="tab-content bg-gray-800 p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl mb-4 font-bold border-b border-gray-700 pb-2">KATEGORI DOWNLOAD</h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4 mb-6">
-                    <button onclick="openDlTab('dl-config')" id="dlBtn-dl-config" class="bg-blue-600 p-3 rounded font-bold text-center text-sm">Config</button>
-                    <button onclick="openDlTab('dl-foto')" id="dlBtn-dl-foto" class="bg-gray-700 p-3 rounded font-bold text-center text-sm hover:bg-gray-600">Foto</button>
-                    <button onclick="openDlTab('dl-script')" id="dlBtn-dl-script" class="bg-gray-700 p-3 rounded font-bold text-center text-sm hover:bg-gray-600">Script</button>
-                    <button onclick="openDlTab('dl-doc')" id="dlBtn-dl-doc" class="bg-gray-700 p-3 rounded font-bold text-center text-sm hover:bg-gray-600">Document</button>
-                </div>
-
-                <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
-                    <div id="dl-config" class="dl-tab active"><ul class="divide-y divide-gray-800" id="list-config"></ul></div>
-                    <div id="dl-foto" class="dl-tab"><ul class="divide-y divide-gray-800" id="list-foto"></ul></div>
-                    <div id="dl-script" class="dl-tab"><ul class="divide-y divide-gray-800" id="list-script"></ul></div>
-                    <div id="dl-doc" class="dl-tab"><ul class="divide-y divide-gray-800" id="list-doc"></ul></div>
-                </div>
-            </div>
-
-            <div id="myfiles" class="tab-content bg-gray-800 p-6 rounded-lg shadow-md">
-                <h2 class="text-xl mb-4 font-bold">File Yang Saya Upload</h2>
-                <ul class="divide-y divide-gray-700" id="myFilesList"></ul>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let isLoginMode = true;
-        let currentUser = null;
-
-        // Bot Telegram Publik Pengganti Server Storage (Gratis, Stabil, Anti-Block)
-        const BOT_TOKEN = "7318712318:AAFl5zX4M3n9xP_z8921klAsdWq123M"; 
-        const CHAT_ID = "-1002214451290"; 
-
-        window.onload = function() {
-            const session = localStorage.getItem("cloud_session");
-            if(session) {
-                currentUser = session;
-                showDashboard();
-            }
-        }
-
-        function switchAuthMode() {
-            isLoginMode = !isLoginMode;
-            document.getElementById("authTitle").innerText = isLoginMode ? "Login MyCloud" : "Daftar Akun Baru";
-            document.getElementById("btnAuth").innerText = isLoginMode ? "MASUK" : "DAFTAR";
-        }
-
-        function handleAuth() {
-            const user = document.getElementById("userInput").value.trim();
-            const pass = document.getElementById("passInput").value.trim();
-            const alertBox = document.getElementById("authAlert");
-
-            if(!user || !pass) {
-                showAlert(alertBox, "Isi semua data!", "bg-red-500");
-                return;
-            }
-
-            if(isLoginMode) {
-                const storedPass = localStorage.getItem("user_" + user);
-                if(storedPass && storedPass === pass) {
-                    currentUser = user;
-                    localStorage.setItem("cloud_session", user);
-                    showDashboard();
-                } else {
-                    showAlert(alertBox, "Username/Password salah!", "bg-red-500");
-                }
-            } else {
-                if(localStorage.getItem("user_" + user)) {
-                    showAlert(alertBox, "Username sudah ada!", "bg-red-500");
-                } else {
-                    localStorage.setItem("user_" + user, pass);
-                    showAlert(alertBox, "Daftar berhasil! Silakan login.", "bg-green-500");
-                    switchAuthMode();
-                }
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem("cloud_session");
-            location.reload();
-        }
-
-        function showDashboard() {
-            document.getElementById("authPage").classList.add("hidden");
-            document.getElementById("dashboardPage").classList.remove("hidden");
-            document.getElementById("userNameDisplay").innerText = currentUser;
-            document.getElementById("profile-pic").innerText = currentUser.charAt(0).toUpperCase();
-            loadFiles();
-        }
-
-        function openTab(tabName) {
-            const contents = document.getElementsByClassName("tab-content");
-            for (let i = 0; i < contents.length; i++) contents[i].classList.remove("active");
-            document.getElementById(tabName).classList.add("active");
-        }
-
-        function openDlTab(dlTabName) {
-            const contents = document.getElementsByClassName("dl-tab");
-            for (let i = 0; i < contents.length; i++) contents[i].classList.remove("active");
-            document.getElementById(dlTabName).classList.add("active");
-        }
-
-        function updateFileLabel() {
-            const input = document.getElementById("fileInput");
-            if(input.files.length > 0) {
-                document.getElementById("fileLabelBtn").innerText = "Terpilih: " + input.files[0].name;
-            }
-        }
-
-        // ================= DETEKSI PROSES UPLOAD ASLI KE SERVER TELEGRAM =================
-        function startTelegramUpload() {
-            const fileInput = document.getElementById("fileInput");
-            const alertBox = document.getElementById("uploadAlert");
-            const kategori = document.getElementById("kategori").value;
-
-            if(fileInput.files.length === 0) {
-                showAlert(alertBox, "Pilih file dulu!", "bg-red-500");
-                return;
-            }
-
+        window.uploadFile = async () => {
+            const fileInput = document.getElementById('fileInput');
             const file = fileInput.files[0];
-            const loadingArea = document.getElementById("loadingArea");
-            const uploadStatus = document.getElementById("uploadStatus");
-            const progressBar = document.getElementById("progressBar");
+            if (!file) return alert("Pilih file dulu!");
 
-            loadingArea.classList.remove("hidden");
+            const storageRef = ref(storage, 'configs/' + file.name);
+            alert("Sedang mengupload...");
             
-            const formData = new FormData();
-            formData.append("chat_id", CHAT_ID);
-            formData.append("document", file);
-            formData.append("caption", `User: ${currentUser}\nKategori: ${kategori}`);
-
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", `https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, true);
-
-            // Tampilkan kemajuan persentase loading beneran biar gak stuck 0%
-            xhr.upload.onprogress = function(e) {
-                if(e.lengthComputable) {
-                    const pct = Math.round((e.loaded / e.total) * 100);
-                    progressBar.style.width = pct + "%";
-                    uploadStatus.innerText = `Mengirim ke Server... ${pct}%`;
-                }
-            };
-
-            xhr.onload = function() {
-                if(xhr.status === 200) {
-                    const res = JSON.parse(xhr.responseText);
-                    // Dapatkan file_id unik internet dari Telegram
-                    const fileId = res.result.document.file_id;
-                    const directUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${res.result.document.file_name || 'file'}`;
-
-                    // Simpan data link ke index lokal terdistribusi
-                    let cloudData = JSON.parse(localStorage.getItem("global_cloud_index")) || [];
-                    cloudData.push({
-                        id: Date.now(),
-                        user: currentUser,
-                        name: file.name,
-                        type: kategori,
-                        size: file.size,
-                        url: directUrl
-                    });
-                    localStorage.setItem("global_cloud_index", JSON.stringify(cloudData));
-
-                    uploadStatus.innerText = "✅ Sukses Terunggah Publik!";
-                    setTimeout(() => {
-                        loadingArea.classList.add("hidden");
-                        progressBar.style.width = "0%";
-                        fileInput.value = "";
-                        document.getElementById("fileLabelBtn").innerText = "Klik untuk Pilih File...";
-                        loadFiles();
-                    }, 1200);
-                } else {
-                    showAlert(alertBox, "Gagal upload, coba lagi.", "bg-red-500");
-                    loadingArea.classList.add("hidden");
-                }
-            };
-
-            xhr.send(formData);
-        }
-
-        function loadFiles() {
-            const cloudData = JSON.parse(localStorage.getItem("global_cloud_index")) || [];
+            await uploadBytes(storageRef, file);
+            const url = await getDownloadURL(storageRef);
             
-            const kats = ['config', 'foto', 'script', 'doc'];
-            kats.forEach(k => document.getElementById("list-" + k).innerHTML = "");
-            document.getElementById("myFilesList").innerHTML = "";
-
-            cloudData.forEach(item => {
-                let targetListId = "list-doc";
-                if(item.type === "config") targetListId = "list-config";
-                if(item.type === "foto") targetListId = "list-foto";
-                if(item.type === "script") targetListId = "list-script";
-
-                // List Download Publik (Bisa diklik & didownload siapa saja secara nyata)
-                const liDl = document.createElement("li");
-                liDl.className = "py-3 flex justify-between items-center text-sm border-b border-gray-800";
-                liDl.innerHTML = `
-                    <div class="flex flex-col truncate max-w-[70%]">
-                        <span class="truncate font-semibold text-gray-200">${item.name}</span>
-                        <span class="text-xs text-gray-500">Oleh: ${item.user} | ${(item.size/(1024*1024)).toFixed(2)} MB</span>
-                    </div>
-                    <a href="${item.url}" target="_blank" class="bg-green-600 px-3 py-1 rounded text-xs font-bold text-white hover:bg-green-500">DOWNLOAD</a>
-                `;
-                document.getElementById(targetListId).appendChild(liDl);
-
-                // List File Saya (Tempat kamu menghapus file milikmu sendiri)
-                if(item.user === currentUser) {
-                    const liMine = document.createElement("li");
-                    liMine.className = "py-3 flex justify-between items-center text-sm border-b border-gray-800";
-                    liMine.innerHTML = `
-                        <div class="flex flex-col">
-                            <span class="font-semibold text-gray-200">${item.name}</span>
-                            <span class="text-xs text-gray-400">Kategori: ${item.type.toUpperCase()}</span>
-                        </div>
-                        <button onclick="deleteFileRecord(${item.id})" class="text-red-500 font-bold text-xs hover:underline">Hapus</button>
-                    `;
-                    document.getElementById("myFilesList").appendChild(liMine);
-                }
-            });
-
-            // Set teks jika kategori masih kosong
-            kats.forEach(k => {
-                const el = document.getElementById("list-" + k);
-                if(el.children.length === 0) el.innerHTML = `<p class="text-sm text-gray-600 text-center py-4">Belum ada file di kategori ini.</p>`;
-            });
-        }
-
-        function deleteFileRecord(id) {
-            let cloudData = JSON.parse(localStorage.getItem("global_cloud_index")) || [];
-            cloudData = cloudData.filter(item => item.id !== id);
-            localStorage.setItem("global_cloud_index", JSON.stringify(cloudData));
-            loadFiles();
-        }
-
-        function showAlert(element, message, bgColor) {
-            element.innerText = message;
-            element.className = `mb-4 text-sm text-center p-2 rounded ${bgColor} text-white font-bold block`;
-            setTimeout(() => { element.className = "hidden"; }, 4000);
-        }
+            document.getElementById('result').innerHTML = `Upload sukses! Link: <a href="${url}" target="_blank">${url}</a>`;
+        };
     </script>
+</head>
+<body style="background:#121212; color:white; font-family:sans-serif; padding:20px;">
+    <h2>MyCloud Upload</h2>
+    <input type="file" id="fileInput">
+    <button onclick="uploadFile()">Mulai Upload</button>
+    <div id="result" style="margin-top:20px; color:#4fa3ff;"></div>
 </body>
 </html>
