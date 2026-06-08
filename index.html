@@ -9,64 +9,275 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
     </style>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
 <body class="bg-gray-900 text-white font-sans antialiased">
 
-    <div id="dashboardPage">
+    <div id="authPage" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
+            <h2 id="authTitle" class="text-3xl font-bold text-center text-blue-400 mb-6">Login MyCloud</h2>
+            <div id="authAlert" class="mb-4 text-sm text-center hidden p-2 rounded"></div>
+
+            <div class="mb-4">
+                <label class="block text-gray-300 mb-2">Username</label>
+                <input type="text" id="userInput" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500" placeholder="Masukkan username">
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-300 mb-2">Password</label>
+                <input type="password" id="passInput" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500" placeholder="Masukkan password">
+            </div>
+
+            <button onclick="handleAuth()" id="btnAuth" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded transition">
+                MASUK
+            </button>
+            <p class="text-center text-sm text-gray-400 mt-4">
+                <span id="authSwitchText">Belum punya akun?</span> 
+                <button onclick="switchAuthMode()" id="btnSwitch" class="text-blue-400 underline ml-1">Daftar</button>
+            </p>
+        </div>
+    </div>
+
+    <div id="dashboardPage" class="hidden">
         <nav class="bg-gray-800 p-4 shadow-lg flex justify-between items-center">
             <h1 class="text-xl font-bold text-blue-400">MyCloud</h1>
             <div class="flex items-center space-x-3">
-                <span id="userNameDisplay" class="text-sm font-bold text-gray-200">User</span>
+                <div class="flex flex-col items-end">
+                    <span id="userNameDisplay" class="text-sm font-bold text-gray-200">User</span>
+                    <button onclick="logout()" class="text-xs text-red-400 hover:underline">Keluar</button>
+                </div>
+                <div id="profile-pic" class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-lg font-bold border-2 border-blue-400">U</div>
             </div>
         </nav>
 
         <div class="max-w-4xl mx-auto mt-8 p-4">
+            <div class="flex space-x-4 border-b border-gray-700 pb-2 mb-6">
+                <button onclick="openTab('upload')" id="tabBtn-upload" class="text-blue-400 font-semibold pb-2 border-b-2 border-blue-400">Upload & Share</button>
+                <button onclick="openTab('download')" id="tabBtn-download" class="text-gray-400 font-semibold pb-2 hover:text-green-400">Klaim File Orang</button>
+            </div>
+
             <div id="upload" class="tab-content active bg-gray-800 p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl mb-2 font-bold">Upload ke Cloud</h2>
-                <input type="file" id="fileInput" class="hidden" onchange="document.getElementById('fileLabelBtn').innerText = this.files[0].name">
-                <button onclick="document.getElementById('fileInput').click()" id="fileLabelBtn" class="border-2 border-dashed border-gray-600 p-6 rounded w-full mb-4">Klik Pilih File</button>
+                <h2 class="text-2xl mb-2 font-bold">Upload & Dapatkan Kode</h2>
+                <p class="text-gray-400 text-sm mb-4">Upload file mu ke server global untuk mendapatkan kode unduhan publik yang bisa dibagikan ke siapa saja.</p>
+                <div id="uploadAlert" class="mb-4 text-sm hidden p-2 rounded"></div>
+
+                <input type="file" id="fileInput" class="hidden" onchange="updateFileLabel()">
+                <button onclick="document.getElementById('fileInput').click()" id="fileLabelBtn" class="border-2 border-dashed border-gray-600 hover:border-blue-500 p-6 rounded text-center w-full mb-4 block text-gray-400">
+                    Klik untuk Pilih File...
+                </button>
                 
-                <button id="uploadBtn" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-3 rounded w-full transition">
-                    UPLOAD KE FIREBASE
+                <button onclick="uploadAndGetCode()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-3 rounded w-full transition">
+                    Mulai Mengunggah
+                </button>
+
+                <div id="shareResult" class="mt-6 p-4 bg-gray-900 rounded-lg border border-blue-500/50 hidden text-center">
+                    <p class="text-sm text-gray-400">Salin kode ini dan berikan ke temanmu:</p>
+                    <h3 id="generatedCode" class="text-3xl font-extrabold tracking-widest text-green-400 my-2">XXXXX</h3>
+                    <p class="text-xs text-yellow-400">File aman tersimpan di cloud Firebase.</p>
+                </div>
+            </div>
+
+            <div id="download" class="tab-content bg-gray-800 p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl mb-2 font-bold">Masukkan Kode File</h2>
+                <p class="text-gray-400 text-sm mb-4">Punya kode share dari orang lain? Masukkan di bawah ini untuk mengunduh filenya langsung.</p>
+                <div id="downloadAlert" class="mb-4 text-sm hidden p-2 rounded"></div>
+
+                <input type="text" id="shareCodeInput" class="w-full p-3 rounded bg-gray-700 border border-gray-600 text-center text-xl font-bold uppercase tracking-widest mb-4 focus:outline-none focus:border-green-500" placeholder="CONTOH: ABCDE">
+
+                <button onclick="downloadWithCode()" class="bg-green-600 hover:bg-green-500 text-white font-bold px-4 py-3 rounded w-full transition">
+                    Cari & Download File Real
                 </button>
             </div>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
-
-        // KONFIGURASI FIREBASE ANDA
+    <script>
+        // Konfigurasi Firebase milik Anda
         const firebaseConfig = {
-            apiKey: "AIzaSyAzjngBpvL0eD9qEtSrjXpwZN4GPitU1wA",
+            apiKey: "AIzaSyAzjnGbpvLOeD9qEtSrjXpwZN4GPItU1wA",
             authDomain: "mycloud-649c5.firebaseapp.com",
             projectId: "mycloud-649c5",
-            storageBucket: "mycloud-649c5.appspot.com",
+            storageBucket: "mycloud-649c5.firebasestorage.app",
             messagingSenderId: "792370200055",
-            appId: "1:792370200055:web:975757a5425d2a0a5282f2"
+            appId: "1:792370200055:web:975757a5425d2a0a5282f2",
+            measurementId: "G-9ZMVC57VVS"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const storage = getStorage(app);
+        // Inisialisasi Firebase
+        firebase.initializeApp(firebaseConfig);
+        const storage = firebase.storage();
+        const database = firebase.database(); // Menggunakan Realtime Database untuk simpan index kode
 
-        // LOGIKA UPLOAD
-        document.getElementById('uploadBtn').addEventListener('click', () => {
-            const file = document.getElementById('fileInput').files[0];
-            if (!file) return alert("Pilih file dulu!");
+        let isLoginMode = true;
+        let currentUser = null;
 
-            const storageRef = ref(storage, 'uploads/' + file.name);
+        window.onload = function() {
+            const session = localStorage.getItem("cloud_session");
+            if(session) {
+                currentUser = session;
+                showDashboard();
+            }
+        }
+
+        function switchAuthMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById("authTitle").innerText = isLoginMode ? "Login MyCloud" : "Daftar Akun Baru";
+            document.getElementById("btnAuth").innerText = isLoginMode ? "MASUK" : "DAFTAR";
+        }
+
+        function handleAuth() {
+            const user = document.getElementById("userInput").value.trim();
+            const pass = document.getElementById("passInput").value.trim();
+            const alertBox = document.getElementById("authAlert");
+
+            if(!user || !pass) {
+                showAlert(alertBox, "Isi semua data!", "bg-red-500");
+                return;
+            }
+
+            if(isLoginMode) {
+                const storedPass = localStorage.getItem("user_" + user);
+                if(storedPass && storedPass === pass) {
+                    currentUser = user;
+                    localStorage.setItem("cloud_session", user);
+                    showDashboard();
+                } else {
+                    showAlert(alertBox, "Username/Password salah!", "bg-red-500");
+                }
+            } else {
+                if(localStorage.getItem("user_" + user)) {
+                    showAlert(alertBox, "Username sudah ada!", "bg-red-500");
+                } else {
+                    localStorage.setItem("user_" + user, pass);
+                    showAlert(alertBox, "Daftar berhasil! Silakan login.", "bg-green-500");
+                    switchAuthMode();
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("cloud_session");
+            location.reload();
+        }
+
+        function showDashboard() {
+            document.getElementById("authPage").classList.add("hidden");
+            document.getElementById("dashboardPage").classList.remove("hidden");
+            document.getElementById("userNameDisplay").innerText = currentUser;
+            document.getElementById("profile-pic").innerText = currentUser.charAt(0).toUpperCase();
+        }
+
+        function openTab(tabName) {
+            const contents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < contents.length; i++) contents[i].classList.remove("active");
+            document.getElementById(tabName).classList.add("active");
+        }
+
+        function updateFileLabel() {
+            const input = document.getElementById("fileInput");
+            if(input.files.length > 0) {
+                document.getElementById("fileLabelBtn").innerText = "Terpilih: " + input.files[0].name;
+            }
+        }
+
+        // ================= ENGINE FIREBASE UPLOAD =================
+        function uploadAndGetCode() {
+            const fileInput = document.getElementById("fileInput");
+            const alertBox = document.getElementById("uploadAlert");
+
+            if(fileInput.files.length === 0) {
+                showAlert(alertBox, "Pilih file dulu boss!", "bg-red-500");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            showAlert(alertBox, "Menghubungkan ke Firebase Cloud...", "bg-blue-500");
+
+            // Membuat 5 digit kode acak unik
+            const generateCode = Math.random().toString(36).substring(2, 7).toUpperCase();
             
-            alert("Sedang mengupload...");
-            uploadBytes(storageRef, file).then((snapshot) => {
-                getDownloadURL(snapshot.ref).then((url) => {
-                    alert("Berhasil! Link file kamu: " + url);
-                    console.log("File tersedia di:", url);
-                });
-            }).catch((error) => {
-                alert("Error: " + error.message);
+            // Tentukan lokasi penyimpanan di Firebase Storage
+            const storageRef = storage.ref('shared_files/' + generateCode + '_' + file.name);
+            
+            // Mulai Upload
+            const uploadTask = storageRef.put(file);
+
+            uploadTask.on('state_changed', 
+                (snapshot) => {
+                    // Progress bar text
+                    const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                    showAlert(alertBox, `Mengunggah: ${progress}%`, "bg-blue-500");
+                }, 
+                (error) => {
+                    console.error(error);
+                    showAlert(alertBox, "❌ Gagal upload! Cek aturan Security Rules Firebase Storage Anda.", "bg-red-500");
+                }, 
+                () => {
+                    // Upload Selesai, ambil URL unduhan publiknya
+                    uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                        
+                        // Simpan relasi kode acak dan URL asli ke Firebase Realtime Database
+                        database.ref('files/' + generateCode).set({
+                            name: file.name,
+                            url: downloadURL
+                        })
+                        .then(() => {
+                            showAlert(alertBox, "✅ Berhasil Di-hosting ke Firebase Cloud!", "bg-green-500");
+                            document.getElementById("shareResult").classList.remove("hidden");
+                            document.getElementById("generatedCode").innerText = generateCode;
+                        })
+                        .catch((dbError) => {
+                            console.error(dbError);
+                            showAlert(alertBox, "❌ Gagal menyimpan index kode ke Database.", "bg-red-500");
+                        });
+
+                    });
+                }
+            );
+        }
+
+        // ================= ENGINE FIREBASE DOWNLOAD =================
+        function downloadWithCode() {
+            const codeInput = document.getElementById("shareCodeInput").value.trim().toUpperCase();
+            const alertBox = document.getElementById("downloadAlert");
+
+            if(!codeInput) {
+                showAlert(alertBox, "Masukkan kodenya dulu!", "bg-red-500");
+                return;
+            }
+
+            showAlert(alertBox, "Mencari data di Firebase...", "bg-blue-500");
+
+            // Cari kode di Firebase Realtime Database
+            database.ref('files/' + codeInput).once('value')
+            .then((snapshot) => {
+                if (snapshot.exists()) {
+                    const fileMeta = snapshot.val();
+                    showAlert(alertBox, "✅ File Ditemukan! Memulai download...", "bg-green-500");
+                    
+                    // Trigger download langsung ke browser
+                    const a = document.createElement("a");
+                    a.href = fileMeta.url;
+                    a.target = "_blank"; // Membuka tab baru untuk download aman dari link Firebase
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                } else {
+                    showAlert(alertBox, "❌ Kode salah atau file sudah kedaluwarsa!", "bg-red-500");
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+                showAlert(alertBox, "❌ Terjadi masalah koneksi atau Security Rules ditolak.", "bg-red-500");
             });
-        });
+        }
+
+        function showAlert(element, message, bgColor) {
+            element.innerText = message;
+            element.className = `mb-4 text-sm text-center p-2 rounded ${bgColor} text-white font-bold block`;
+        }
     </script>
 </body>
 </html>
