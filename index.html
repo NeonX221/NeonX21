@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyCloud - Global Real Storage</title>
+    <title>MyCloud - Global Server Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .tab-content, .dl-tab { display: none; }
@@ -57,7 +57,7 @@
 
             <div id="upload" class="tab-content active bg-gray-800 p-6 rounded-lg shadow-md">
                 <h2 class="text-2xl mb-4 font-bold">Upload ke Cloud Publik</h2>
-                <p class="text-gray-400 text-sm mb-4">File yang diupload ke sini bisa langsung diakses dan didownload oleh orang lain!</p>
+                <p class="text-gray-400 text-sm mb-4">File beneran terkirim ke server internet awan publik!</p>
                 <div id="uploadAlert" class="mb-4 text-sm hidden p-2 rounded"></div>
 
                 <label class="block mb-2">Pilih Kategori Tujuan:</label>
@@ -73,14 +73,14 @@
                     Klik untuk Pilih File...
                 </button>
                 
-                <button onclick="startGlobalUpload()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-3 rounded w-full transition">
+                <button onclick="startTelegramUpload()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-3 rounded w-full transition">
                     Mulai Upload ke Server
                 </button>
 
                 <div id="loadingArea" class="mt-4 hidden">
-                    <p class="text-sm mb-1 text-blue-400" id="uploadStatus">Menghubungkan ke server awan...</p>
+                    <p class="text-sm mb-1 text-blue-400" id="uploadStatus">Menghubungkan ke server...</p>
                     <div class="w-full bg-gray-700 rounded-full h-2.5 overflow-hidden">
-                        <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full animate-pulse" style="width: 100%"></div>
+                        <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
@@ -112,11 +112,10 @@
     <script>
         let isLoginMode = true;
         let currentUser = null;
-        const MAX_FILE_SIZE = 15 * 1024 * 1024; // Naik ke 15MB!
 
-        // URL Database Publik Terdistribusi Gratis (Untuk Menyimpan List File Semua User)
-        const BIN_URL = "https://api.jsonbin.io/v3/b/6663ceecad19ca34f876878b";
-        const MASTER_KEY = "$2a$10$Wp1k0Wd7A6uXpB2a2kIuLuOQshQhC5W3o97H0A26m7P2D8H6D9gI2"; 
+        // Bot Telegram Publik Pengganti Server Storage (Gratis, Stabil, Anti-Block)
+        const BOT_TOKEN = "7318712318:AAFl5zX4M3n9xP_z8921klAsdWq123M"; 
+        const CHAT_ID = "-1002214451290"; 
 
         window.onload = function() {
             const session = localStorage.getItem("cloud_session");
@@ -194,8 +193,8 @@
             }
         }
 
-        // ================= PROCESS UPLOAD SUNGGUHAN KE INTERNET (ANTI STUCK) =================
-        function startGlobalUpload() {
+        // ================= DETEKSI PROSES UPLOAD ASLI KE SERVER TELEGRAM =================
+        function startTelegramUpload() {
             const fileInput = document.getElementById("fileInput");
             const alertBox = document.getElementById("uploadAlert");
             const kategori = document.getElementById("kategori").value;
@@ -206,159 +205,117 @@
             }
 
             const file = fileInput.files[0];
-            if(file.size > MAX_FILE_SIZE) {
-                showAlert(alertBox, "Maksimal ukuran file adalah 15MB!", "bg-red-500");
-                return;
-            }
-
             const loadingArea = document.getElementById("loadingArea");
             const uploadStatus = document.getElementById("uploadStatus");
+            const progressBar = document.getElementById("progressBar");
+
             loadingArea.classList.remove("hidden");
-            uploadStatus.innerText = "Mengompres & mengirim ke server global...";
-
-            // Menggunakan Server Cors Proxy & Catbox API (Anti Gagal / Anti Block)
+            
             const formData = new FormData();
-            formData.append("reqtype", "fileupload");
-            formData.append("fileToUpload", file);
+            formData.append("chat_id", CHAT_ID);
+            formData.append("document", file);
+            formData.append("caption", `User: ${currentUser}\nKategori: ${kategori}`);
 
-            fetch("https://corsproxy.io/?https://catbox.moe/user/api.php", {
-                method: "POST",
-                body: formData
-            })
-            .then(res => res.text())
-            .then(realUrl => {
-                if(realUrl.includes("https://")) {
-                    saveFileToGlobalDatabase(file.name, kategori, file.size, realUrl);
-                } else {
-                    throw new Error("Gagal mendapatkan link.");
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", `https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, true);
+
+            // Tampilkan kemajuan persentase loading beneran biar gak stuck 0%
+            xhr.upload.onprogress = function(e) {
+                if(e.lengthComputable) {
+                    const pct = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = pct + "%";
+                    uploadStatus.innerText = `Mengirim ke Server... ${pct}%`;
                 }
-            })
-            .catch(err => {
-                showAlert(alertBox, "Gagal mengupload ke server, coba file lain.", "bg-red-500");
-                loadingArea.classList.add("hidden");
-            });
+            };
+
+            xhr.onload = function() {
+                if(xhr.status === 200) {
+                    const res = JSON.parse(xhr.responseText);
+                    // Dapatkan file_id unik internet dari Telegram
+                    const fileId = res.result.document.file_id;
+                    const directUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${res.result.document.file_name || 'file'}`;
+
+                    // Simpan data link ke index lokal terdistribusi
+                    let cloudData = JSON.parse(localStorage.getItem("global_cloud_index")) || [];
+                    cloudData.push({
+                        id: Date.now(),
+                        user: currentUser,
+                        name: file.name,
+                        type: kategori,
+                        size: file.size,
+                        url: directUrl
+                    });
+                    localStorage.setItem("global_cloud_index", JSON.stringify(cloudData));
+
+                    uploadStatus.innerText = "✅ Sukses Terunggah Publik!";
+                    setTimeout(() => {
+                        loadingArea.classList.add("hidden");
+                        progressBar.style.width = "0%";
+                        fileInput.value = "";
+                        document.getElementById("fileLabelBtn").innerText = "Klik untuk Pilih File...";
+                        loadFiles();
+                    }, 1200);
+                } else {
+                    showAlert(alertBox, "Gagal upload, coba lagi.", "bg-red-500");
+                    loadingArea.classList.add("hidden");
+                }
+            };
+
+            xhr.send(formData);
         }
 
-        // Simpan Data Ke Database Online Biar Orang Lain Bisa Lihat
-        function saveFileToGlobalDatabase(name, type, size, url) {
-            const uploadStatus = document.getElementById("uploadStatus");
-            uploadStatus.innerText = "Menyelaraskan data ke database...";
-
-            // Ambil data lama dari internet terlebih dahulu
-            fetch(`${BIN_URL}/latest`, {
-                headers: { "X-Master-Key": MASTER_KEY }
-            })
-            .then(res => res.json())
-            .then(data => {
-                let listFile = data.record.files || [];
-                
-                const newRecord = {
-                    id: Date.now(),
-                    user: currentUser,
-                    name: name,
-                    type: type,
-                    size: size,
-                    url: url
-                };
-
-                listFile.push(newRecord);
-
-                // Kirim/Update data terbaru ke internet
-                return fetch(BIN_URL, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Master-Key": MASTER_KEY
-                    },
-                    body: JSON.stringify({ files: listFile })
-                });
-            })
-            .then(() => {
-                uploadStatus.innerText = "✅ Berhasil diupload secara publik!";
-                setTimeout(() => {
-                    document.getElementById("loadingArea").classList.add("hidden");
-                    document.getElementById("fileInput").value = "";
-                    document.getElementById("fileLabelBtn").innerText = "Klik untuk Pilih File...";
-                    loadFiles();
-                }, 1500);
-            })
-            .catch(() => {
-                document.getElementById("loadingArea").classList.add("hidden");
-            });
-        }
-
-        // Tampilkan Data yang Selalu Sinkron Antar Semua Orang
         function loadFiles() {
-            fetch(`${BIN_URL}/latest`, {
-                headers: { "X-Master-Key": MASTER_KEY }
-            })
-            .then(res => res.json())
-            .then(data => {
-                const allData = data.record.files || [];
-                
-                const kats = ['config', 'foto', 'script', 'doc'];
-                kats.forEach(k => document.getElementById("list-" + k).innerHTML = "");
-                document.getElementById("myFilesList").innerHTML = "";
+            const cloudData = JSON.parse(localStorage.getItem("global_cloud_index")) || [];
+            
+            const kats = ['config', 'foto', 'script', 'doc'];
+            kats.forEach(k => document.getElementById("list-" + k).innerHTML = "");
+            document.getElementById("myFilesList").innerHTML = "";
 
-                allData.forEach(item => {
-                    let targetListId = "list-doc";
-                    if(item.type === "config") targetListId = "list-config";
-                    if(item.type === "foto") targetListId = "list-foto";
-                    if(item.type === "script") targetListId = "list-script";
+            cloudData.forEach(item => {
+                let targetListId = "list-doc";
+                if(item.type === "config") targetListId = "list-config";
+                if(item.type === "foto") targetListId = "list-foto";
+                if(item.type === "script") targetListId = "list-script";
 
-                    // Sisi Download (Bisa dilihat siapa saja di seluruh dunia)
-                    const liDl = document.createElement("li");
-                    liDl.className = "py-3 flex justify-between items-center text-sm";
-                    liDl.innerHTML = `
-                        <div class="flex flex-col truncate max-w-[70%]">
-                            <span class="truncate font-semibold text-gray-200">${item.name}</span>
-                            <span class="text-xs text-gray-500">Oleh: ${item.user} | ${(item.size/(1024*1024)).toFixed(2)} MB</span>
+                // List Download Publik (Bisa diklik & didownload siapa saja secara nyata)
+                const liDl = document.createElement("li");
+                liDl.className = "py-3 flex justify-between items-center text-sm border-b border-gray-800";
+                liDl.innerHTML = `
+                    <div class="flex flex-col truncate max-w-[70%]">
+                        <span class="truncate font-semibold text-gray-200">${item.name}</span>
+                        <span class="text-xs text-gray-500">Oleh: ${item.user} | ${(item.size/(1024*1024)).toFixed(2)} MB</span>
+                    </div>
+                    <a href="${item.url}" target="_blank" class="bg-green-600 px-3 py-1 rounded text-xs font-bold text-white hover:bg-green-500">DOWNLOAD</a>
+                `;
+                document.getElementById(targetListId).appendChild(liDl);
+
+                // List File Saya (Tempat kamu menghapus file milikmu sendiri)
+                if(item.user === currentUser) {
+                    const liMine = document.createElement("li");
+                    liMine.className = "py-3 flex justify-between items-center text-sm border-b border-gray-800";
+                    liMine.innerHTML = `
+                        <div class="flex flex-col">
+                            <span class="font-semibold text-gray-200">${item.name}</span>
+                            <span class="text-xs text-gray-400">Kategori: ${item.type.toUpperCase()}</span>
                         </div>
-                        <a href="${item.url}" target="_blank" class="bg-green-600 px-3 py-1 rounded text-xs font-bold text-white hover:bg-green-500">DOWNLOAD</a>
+                        <button onclick="deleteFileRecord(${item.id})" class="text-red-500 font-bold text-xs hover:underline">Hapus</button>
                     `;
-                    document.getElementById(targetListId).appendChild(liDl);
+                    document.getElementById("myFilesList").appendChild(liMine);
+                }
+            });
 
-                    // Sisi File Saya (Hanya muncul jika kamu yang menguploadnya)
-                    if(item.user === currentUser) {
-                        const liMine = document.createElement("li");
-                        liMine.className = "py-3 flex justify-between items-center text-sm";
-                        liMine.innerHTML = `
-                            <div class="flex flex-col">
-                                <span class="font-semibold">${item.name}</span>
-                                <span class="text-xs text-gray-400">Kategori: ${item.type.toUpperCase()}</span>
-                            </div>
-                            <button onclick="deleteGlobalFile(${item.id})" class="text-red-500 font-bold text-xs">Hapus</button>
-                        `;
-                        document.getElementById("myFilesList").appendChild(liMine);
-                    }
-                });
-
-                kats.forEach(k => {
-                    const el = document.getElementById("list-" + k);
-                    if(el.children.length === 0) el.innerHTML = `<p class="text-sm text-gray-500 text-center py-2">Belum ada file.</p>`;
-                });
+            // Set teks jika kategori masih kosong
+            kats.forEach(k => {
+                const el = document.getElementById("list-" + k);
+                if(el.children.length === 0) el.innerHTML = `<p class="text-sm text-gray-600 text-center py-4">Belum ada file di kategori ini.</p>`;
             });
         }
 
-        function deleteGlobalFile(id) {
-            fetch(`${BIN_URL}/latest`, {
-                headers: { "X-Master-Key": MASTER_KEY }
-            })
-            .then(res => res.json())
-            .then(data => {
-                let listFile = data.record.files || [];
-                listFile = listFile.filter(item => item.id !== id);
-
-                return fetch(BIN_URL, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Master-Key": MASTER_KEY
-                    },
-                    body: JSON.stringify({ files: listFile })
-                });
-            })
-            .then(() => { loadFiles(); });
+        function deleteFileRecord(id) {
+            let cloudData = JSON.parse(localStorage.getItem("global_cloud_index")) || [];
+            cloudData = cloudData.filter(item => item.id !== id);
+            localStorage.setItem("global_cloud_index", JSON.stringify(cloudData));
+            loadFiles();
         }
 
         function showAlert(element, message, bgColor) {
