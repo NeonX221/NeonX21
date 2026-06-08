@@ -2,43 +2,71 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>MyCloud - Fast Storage</title>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js";
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyCloud - Secure Global Share</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white font-sans antialiased">
 
+    <div id="dashboardPage">
+        <nav class="bg-gray-800 p-4 shadow-lg flex justify-between items-center">
+            <h1 class="text-xl font-bold text-blue-400">MyCloud</h1>
+            <div class="flex items-center space-x-3">
+                <span id="userNameDisplay" class="text-sm font-bold text-gray-200">User</span>
+            </div>
+        </nav>
+
+        <div class="max-w-4xl mx-auto mt-8 p-4">
+            <div id="upload" class="tab-content active bg-gray-800 p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl mb-2 font-bold">Upload ke Cloud</h2>
+                <input type="file" id="fileInput" class="hidden" onchange="document.getElementById('fileLabelBtn').innerText = this.files[0].name">
+                <button onclick="document.getElementById('fileInput').click()" id="fileLabelBtn" class="border-2 border-dashed border-gray-600 p-6 rounded w-full mb-4">Klik Pilih File</button>
+                
+                <button id="uploadBtn" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-3 rounded w-full transition">
+                    UPLOAD KE FIREBASE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+        // KONFIGURASI FIREBASE ANDA
         const firebaseConfig = {
-            apiKey: "AIzaSyAzjnGbpvLOeD9qEtSrjXpwZN4GPItU1wA",
+            apiKey: "AIzaSyAzjngBpvL0eD9qEtSrjXpwZN4GPitU1wA",
             authDomain: "mycloud-649c5.firebaseapp.com",
             projectId: "mycloud-649c5",
-            storageBucket: "mycloud-649c5.firebasestorage.app",
+            storageBucket: "mycloud-649c5.appspot.com",
             messagingSenderId: "792370200055",
-            appId: "1:792370200055:web:975757a5425d2a0a5282f2",
-            measurementId: "G-9ZMVC57VVS"
+            appId: "1:792370200055:web:975757a5425d2a0a5282f2"
         };
 
         const app = initializeApp(firebaseConfig);
         const storage = getStorage(app);
 
-        window.uploadFile = async () => {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
+        // LOGIKA UPLOAD
+        document.getElementById('uploadBtn').addEventListener('click', () => {
+            const file = document.getElementById('fileInput').files[0];
             if (!file) return alert("Pilih file dulu!");
 
-            const storageRef = ref(storage, 'configs/' + file.name);
+            const storageRef = ref(storage, 'uploads/' + file.name);
+            
             alert("Sedang mengupload...");
-            
-            await uploadBytes(storageRef, file);
-            const url = await getDownloadURL(storageRef);
-            
-            document.getElementById('result').innerHTML = `Upload sukses! Link: <a href="${url}" target="_blank">${url}</a>`;
-        };
+            uploadBytes(storageRef, file).then((snapshot) => {
+                getDownloadURL(snapshot.ref).then((url) => {
+                    alert("Berhasil! Link file kamu: " + url);
+                    console.log("File tersedia di:", url);
+                });
+            }).catch((error) => {
+                alert("Error: " + error.message);
+            });
+        });
     </script>
-</head>
-<body style="background:#121212; color:white; font-family:sans-serif; padding:20px;">
-    <h2>MyCloud Upload</h2>
-    <input type="file" id="fileInput">
-    <button onclick="uploadFile()">Mulai Upload</button>
-    <div id="result" style="margin-top:20px; color:#4fa3ff;"></div>
 </body>
 </html>
