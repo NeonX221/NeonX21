@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyCloud - Global Storage</title>
+    <title>MyCloud - Global Real Storage</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .tab-content, .dl-tab { display: none; }
@@ -44,23 +44,20 @@
                     <span id="userNameDisplay" class="text-sm font-bold text-gray-200">User</span>
                     <button onclick="logout()" class="text-xs text-red-400 hover:underline">Keluar</button>
                 </div>
-                <label for="avatarInput" class="cursor-pointer">
-                    <div id="profile-pic" class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-lg font-bold overflow-hidden border-2 border-blue-400">U</div>
-                    <input type="file" id="avatarInput" accept="image/*" class="hidden" onchange="changeAvatar(this)">
-                </label>
+                <div id="profile-pic" class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-lg font-bold border-2 border-blue-400">U</div>
             </div>
         </nav>
 
         <div class="max-w-4xl mx-auto mt-8 p-4">
             <div class="flex space-x-4 border-b border-gray-700 pb-2 mb-6 overflow-x-auto">
                 <button onclick="openTab('upload')" id="tabBtn-upload" class="text-blue-400 font-semibold pb-2 border-b-2 border-blue-400">Upload File</button>
-                <button onclick="openTab('download')" id="tabBtn-download" class="text-gray-400 font-semibold pb-2 hover:text-green-400">Download</button>
-                <button onclick="openTab('myfiles')" id="tabBtn-myfiles" class="text-gray-400 font-semibold pb-2 hover:text-yellow-400">File Saya (<span id="quotaDisplay">0</span>/500MB)</button>
+                <button onclick="openTab('download')" id="tabBtn-download" class="text-gray-400 font-semibold pb-2 hover:text-green-400">Download Global</button>
+                <button onclick="openTab('myfiles')" id="tabBtn-myfiles" class="text-gray-400 font-semibold pb-2 hover:text-yellow-400">File Saya</button>
             </div>
 
             <div id="upload" class="tab-content active bg-gray-800 p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl mb-4 font-bold">Upload ke Server Global</h2>
-                <p class="text-gray-400 text-sm mb-4">File yang diupload ke sini bisa diakses dan didownload oleh orang lain!</p>
+                <h2 class="text-2xl mb-4 font-bold">Upload ke Cloud Publik</h2>
+                <p class="text-gray-400 text-sm mb-4">File yang diupload ke sini bisa langsung diakses dan didownload oleh orang lain!</p>
                 <div id="uploadAlert" class="mb-4 text-sm hidden p-2 rounded"></div>
 
                 <label class="block mb-2">Pilih Kategori Tujuan:</label>
@@ -77,19 +74,19 @@
                 </button>
                 
                 <button onclick="startGlobalUpload()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-3 rounded w-full transition">
-                    Mulai Upload Real Server
+                    Mulai Upload ke Server
                 </button>
 
                 <div id="loadingArea" class="mt-4 hidden">
-                    <p class="text-sm mb-1 text-blue-400" id="uploadStatus">Mengunggah ke server... 0%</p>
-                    <div class="w-full bg-gray-700 rounded-full h-2.5">
-                        <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full transition-all" style="width: 0%"></div>
+                    <p class="text-sm mb-1 text-blue-400" id="uploadStatus">Menghubungkan ke server awan...</p>
+                    <div class="w-full bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                        <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full animate-pulse" style="width: 100%"></div>
                     </div>
                 </div>
             </div>
 
             <div id="download" class="tab-content bg-gray-800 p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl mb-4 font-bold border-b border-gray-700 pb-2">DOWNLOAD</h2>
+                <h2 class="text-2xl mb-4 font-bold border-b border-gray-700 pb-2">KATEGORI DOWNLOAD</h2>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4 mb-6">
                     <button onclick="openDlTab('dl-config')" id="dlBtn-dl-config" class="bg-blue-600 p-3 rounded font-bold text-center text-sm">Config</button>
                     <button onclick="openDlTab('dl-foto')" id="dlBtn-dl-foto" class="bg-gray-700 p-3 rounded font-bold text-center text-sm hover:bg-gray-600">Foto</button>
@@ -106,11 +103,7 @@
             </div>
 
             <div id="myfiles" class="tab-content bg-gray-800 p-6 rounded-lg shadow-md">
-                <div id="quotaWarning" class="hidden bg-red-900/50 border border-red-500 text-red-200 p-4 rounded mb-4">
-                    <h3 class="font-bold">⚠️ Peringatan Kuota Penuh!</h3>
-                    <p class="text-sm">Batas 500MB akun Anda habis. Silakan hapus file lama.</p>
-                </div>
-                <h2 class="text-xl mb-4 font-bold">Semua File Saya</h2>
+                <h2 class="text-xl mb-4 font-bold">File Yang Saya Upload</h2>
                 <ul class="divide-y divide-gray-700" id="myFilesList"></ul>
             </div>
         </div>
@@ -119,10 +112,12 @@
     <script>
         let isLoginMode = true;
         let currentUser = null;
-        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-        const MAX_TOTAL_SIZE = 500 * 1024 * 1024; // 500MB
+        const MAX_FILE_SIZE = 15 * 1024 * 1024; // Naik ke 15MB!
 
-        // Cek Sesi Login biar ga ilang pas di-refresh
+        // URL Database Publik Terdistribusi Gratis (Untuk Menyimpan List File Semua User)
+        const BIN_URL = "https://api.jsonbin.io/v3/b/6663ceecad19ca34f876878b";
+        const MASTER_KEY = "$2a$10$Wp1k0Wd7A6uXpB2a2kIuLuOQshQhC5W3o97H0A26m7P2D8H6D9gI2"; 
+
         window.onload = function() {
             const session = localStorage.getItem("cloud_session");
             if(session) {
@@ -176,26 +171,8 @@
             document.getElementById("authPage").classList.add("hidden");
             document.getElementById("dashboardPage").classList.remove("hidden");
             document.getElementById("userNameDisplay").innerText = currentUser;
-            
-            const savedAvatar = localStorage.getItem("avatar_" + currentUser);
-            const picBox = document.getElementById("profile-pic");
-            if(savedAvatar) {
-                picBox.innerHTML = `<img src="${savedAvatar}" class="w-full h-full object-cover">`;
-            } else {
-                picBox.innerText = currentUser.charAt(0).toUpperCase();
-            }
+            document.getElementById("profile-pic").innerText = currentUser.charAt(0).toUpperCase();
             loadFiles();
-        }
-
-        function changeAvatar(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    localStorage.setItem("avatar_" + currentUser, e.target.result);
-                    document.getElementById("profile-pic").innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
         }
 
         function openTab(tabName) {
@@ -217,7 +194,7 @@
             }
         }
 
-        // ================= FITUR UPLOAD SUNGGUHAN KE INTERNET GLOBAL =================
+        // ================= PROCESS UPLOAD SUNGGUHAN KE INTERNET (ANTI STUCK) =================
         function startGlobalUpload() {
             const fileInput = document.getElementById("fileInput");
             const alertBox = document.getElementById("uploadAlert");
@@ -229,139 +206,159 @@
             }
 
             const file = fileInput.files[0];
-
             if(file.size > MAX_FILE_SIZE) {
-                showAlert(alertBox, "Maksimal ukuran file 5MB!", "bg-red-500");
-                return;
-            }
-
-            // Hitung kuota akun (Maksimal 500MB)
-            let currentFiles = JSON.parse(localStorage.getItem("global_files_" + currentUser)) || [];
-            let totalUsed = currentFiles.reduce((acc, f) => acc + f.size, 0);
-
-            if(totalUsed + file.size > MAX_TOTAL_SIZE) {
-                showAlert(alertBox, "Gagal! Batas total kuota 500MB penuh. Hapus file lama!", "bg-red-500");
-                document.getElementById("quotaWarning").classList.remove("hidden");
+                showAlert(alertBox, "Maksimal ukuran file adalah 15MB!", "bg-red-500");
                 return;
             }
 
             const loadingArea = document.getElementById("loadingArea");
-            const progressBar = document.getElementById("progressBar");
             const uploadStatus = document.getElementById("uploadStatus");
-
             loadingArea.classList.remove("hidden");
+            uploadStatus.innerText = "Mengompres & mengirim ke server global...";
 
-            // GUNAKAN API SUNGGUHAN UNTUK MELEMPAR FILE KE INTERNET (Uguu.se API)
+            // Menggunakan Server Cors Proxy & Catbox API (Anti Gagal / Anti Block)
             const formData = new FormData();
-            formData.append("files[]", file);
+            formData.append("reqtype", "fileupload");
+            formData.append("fileToUpload", file);
 
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", "https://uguu.se/upload.php", true);
-
-            // Deteksi Kecepatan Upload Asli HP Kamu
-            xhr.upload.onprogress = function(e) {
-                if (e.lengthComputable) {
-                    const percentage = Math.round((e.loaded / e.total) * 100);
-                    progressBar.style.width = percentage + "%";
-                    uploadStatus.innerText = `Mengunggah ke Server Internet... ${percentage}%`;
-                }
-            };
-
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    const response = JSON.parse(xhr.responseText);
-                    const realDownloadUrl = response.files[0].url; // Link download asli internet
-
-                    // Simpan data link ke index database virtual agar sinkron antar user
-                    let allData = JSON.parse(localStorage.getItem("all_global_storage")) || [];
-                    const newFileRecord = {
-                        id: Date.now(),
-                        user: currentUser,
-                        name: file.name,
-                        type: kategori,
-                        size: file.size,
-                        url: realDownloadUrl
-                    };
-                    
-                    allData.push(newFileRecord);
-                    localStorage.setItem("all_global_storage", JSON.stringify(allData));
-
-                    uploadStatus.innerText = "✅ Sukses Diupload ke Awan Publik!";
-                    setTimeout(() => {
-                        loadingArea.classList.add("hidden");
-                        progressBar.style.width = "0%";
-                        fileInput.value = "";
-                        document.getElementById("fileLabelBtn").innerText = "Klik untuk Pilih File...";
-                        loadFiles();
-                    }, 1500);
+            fetch("https://corsproxy.io/?https://catbox.moe/user/api.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.text())
+            .then(realUrl => {
+                if(realUrl.includes("https://")) {
+                    saveFileToGlobalDatabase(file.name, kategori, file.size, realUrl);
                 } else {
-                    showAlert(alertBox, "Server sibuk, coba lagi nanti.", "bg-red-500");
-                    loadingArea.classList.add("hidden");
+                    throw new Error("Gagal mendapatkan link.");
                 }
-            };
-
-            xhr.send(formData);
+            })
+            .catch(err => {
+                showAlert(alertBox, "Gagal mengupload ke server, coba file lain.", "bg-red-500");
+                loadingArea.classList.add("hidden");
+            });
         }
 
-        // Sinkronisasi data download agar orang lain bisa akses lewat database lokal terdistribusi
-        function loadFiles() {
-            const allData = JSON.parse(localStorage.getItem("all_global_storage")) || [];
-            
-            const kats = ['config', 'foto', 'script', 'doc'];
-            kats.forEach(k => document.getElementById("list-" + k).innerHTML = "");
-            document.getElementById("myFilesList").innerHTML = "";
+        // Simpan Data Ke Database Online Biar Orang Lain Bisa Lihat
+        function saveFileToGlobalDatabase(name, type, size, url) {
+            const uploadStatus = document.getElementById("uploadStatus");
+            uploadStatus.innerText = "Menyelaraskan data ke database...";
 
-            let myTotalSize = 0;
+            // Ambil data lama dari internet terlebih dahulu
+            fetch(`${BIN_URL}/latest`, {
+                headers: { "X-Master-Key": MASTER_KEY }
+            })
+            .then(res => res.json())
+            .then(data => {
+                let listFile = data.record.files || [];
+                
+                const newRecord = {
+                    id: Date.now(),
+                    user: currentUser,
+                    name: name,
+                    type: type,
+                    size: size,
+                    url: url
+                };
 
-            allData.forEach(item => {
-                // Sisi Tampilan DOWNLOAD (Bisa dilihat & didownload siapapun!)
-                let targetListId = "list-doc";
-                if(item.type === "config") targetListId = "list-config";
-                if(item.type === "foto") targetListId = "list-foto";
-                if(item.type === "script") targetListId = "list-script";
+                listFile.push(newRecord);
 
-                const liDl = document.createElement("li");
-                liDl.className = "py-3 flex justify-between items-center text-sm";
-                liDl.innerHTML = `
-                    <div class="flex flex-col truncate max-w-[70%]">
-                        <span class="truncate font-semibold">${item.name}</span>
-                        <span class="text-xs text-gray-500">Oleh: ${item.user}</span>
-                    </div>
-                    <a href="${item.url}" target="_blank" download="${item.name}" class="bg-green-600 px-3 py-1 rounded text-xs font-bold text-white hover:bg-green-500">DOWNLOAD</a>
-                `;
-                document.getElementById(targetListId).appendChild(liDl);
-
-                // Sisi Tampilan FILE SAYA (Hanya milik pengunggah asli yang bisa hapus)
-                if(item.user === currentUser) {
-                    myTotalSize += item.size;
-                    const liMine = document.createElement("li");
-                    liMine.className = "py-3 flex justify-between items-center text-sm";
-                    liMine.innerHTML = `
-                        <div class="flex flex-col">
-                            <span class="font-semibold">${item.name}</span>
-                            <span class="text-xs text-gray-400">${(item.size/(1024*1024)).toFixed(2)} MB</span>
-                        </div>
-                        <button onclick="deleteGlobalFile(${item.id})" class="text-red-500 font-bold text-xs">Hapus</button>
-                    `;
-                    document.getElementById("myFilesList").appendChild(liMine);
-                }
+                // Kirim/Update data terbaru ke internet
+                return fetch(BIN_URL, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Master-Key": MASTER_KEY
+                    },
+                    body: JSON.stringify({ files: listFile })
+                });
+            })
+            .then(() => {
+                uploadStatus.innerText = "✅ Berhasil diupload secara publik!";
+                setTimeout(() => {
+                    document.getElementById("loadingArea").classList.add("hidden");
+                    document.getElementById("fileInput").value = "";
+                    document.getElementById("fileLabelBtn").innerText = "Klik untuk Pilih File...";
+                    loadFiles();
+                }, 1500);
+            })
+            .catch(() => {
+                document.getElementById("loadingArea").classList.add("hidden");
             });
+        }
 
-            // Update info kuota
-            const mbUsed = (myTotalSize / (1024 * 1024)).toFixed(1);
-            document.getElementById("quotaDisplay").innerText = mbUsed + "MB";
-            if(myTotalSize >= MAX_TOTAL_SIZE) {
-                document.getElementById("quotaWarning").classList.remove("hidden");
-            } else {
-                document.getElementById("quotaWarning").classList.add("hidden");
-            }
+        // Tampilkan Data yang Selalu Sinkron Antar Semua Orang
+        function loadFiles() {
+            fetch(`${BIN_URL}/latest`, {
+                headers: { "X-Master-Key": MASTER_KEY }
+            })
+            .then(res => res.json())
+            .then(data => {
+                const allData = data.record.files || [];
+                
+                const kats = ['config', 'foto', 'script', 'doc'];
+                kats.forEach(k => document.getElementById("list-" + k).innerHTML = "");
+                document.getElementById("myFilesList").innerHTML = "";
+
+                allData.forEach(item => {
+                    let targetListId = "list-doc";
+                    if(item.type === "config") targetListId = "list-config";
+                    if(item.type === "foto") targetListId = "list-foto";
+                    if(item.type === "script") targetListId = "list-script";
+
+                    // Sisi Download (Bisa dilihat siapa saja di seluruh dunia)
+                    const liDl = document.createElement("li");
+                    liDl.className = "py-3 flex justify-between items-center text-sm";
+                    liDl.innerHTML = `
+                        <div class="flex flex-col truncate max-w-[70%]">
+                            <span class="truncate font-semibold text-gray-200">${item.name}</span>
+                            <span class="text-xs text-gray-500">Oleh: ${item.user} | ${(item.size/(1024*1024)).toFixed(2)} MB</span>
+                        </div>
+                        <a href="${item.url}" target="_blank" class="bg-green-600 px-3 py-1 rounded text-xs font-bold text-white hover:bg-green-500">DOWNLOAD</a>
+                    `;
+                    document.getElementById(targetListId).appendChild(liDl);
+
+                    // Sisi File Saya (Hanya muncul jika kamu yang menguploadnya)
+                    if(item.user === currentUser) {
+                        const liMine = document.createElement("li");
+                        liMine.className = "py-3 flex justify-between items-center text-sm";
+                        liMine.innerHTML = `
+                            <div class="flex flex-col">
+                                <span class="font-semibold">${item.name}</span>
+                                <span class="text-xs text-gray-400">Kategori: ${item.type.toUpperCase()}</span>
+                            </div>
+                            <button onclick="deleteGlobalFile(${item.id})" class="text-red-500 font-bold text-xs">Hapus</button>
+                        `;
+                        document.getElementById("myFilesList").appendChild(liMine);
+                    }
+                });
+
+                kats.forEach(k => {
+                    const el = document.getElementById("list-" + k);
+                    if(el.children.length === 0) el.innerHTML = `<p class="text-sm text-gray-500 text-center py-2">Belum ada file.</p>`;
+                });
+            });
         }
 
         function deleteGlobalFile(id) {
-            let allData = JSON.parse(localStorage.getItem("all_global_storage")) || [];
-            allData = allData.filter(item => item.id !== id);
-            localStorage.setItem("all_global_storage", JSON.stringify(allData));
-            loadFiles();
+            fetch(`${BIN_URL}/latest`, {
+                headers: { "X-Master-Key": MASTER_KEY }
+            })
+            .then(res => res.json())
+            .then(data => {
+                let listFile = data.record.files || [];
+                listFile = listFile.filter(item => item.id !== id);
+
+                return fetch(BIN_URL, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Master-Key": MASTER_KEY
+                    },
+                    body: JSON.stringify({ files: listFile })
+                });
+            })
+            .then(() => { loadFiles(); });
         }
 
         function showAlert(element, message, bgColor) {
