@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyCloud Storage</title>
+    <title>MyCloud - Real Storage</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .tab-content, .dl-tab { display: none; }
@@ -12,56 +12,64 @@
 </head>
 <body class="bg-gray-900 text-white font-sans antialiased">
 
-    <!-- ================= HALAMAN LOGIN ================= -->
-    <div id="loginPage" class="min-h-screen flex items-center justify-center p-4">
+    <div id="authPage" class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
-            <h2 class="text-3xl font-bold text-center text-blue-400 mb-6">MyCloud</h2>
-            <p class="text-gray-400 text-sm text-center mb-6">Silakan login untuk mengakses penyimpanan 500MB Anda.</p>
+            <h2 id="authTitle" class="text-3xl font-bold text-center text-blue-400 mb-6">Login MyCloud</h2>
             
+            <div id="authAlert" class="mb-4 text-sm text-center hidden p-2 rounded"></div>
+
             <div class="mb-4">
-                <label class="block text-gray-300 mb-2">Email</label>
-                <input type="email" id="emailInput" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500" placeholder="nama@email.com">
+                <label class="block text-gray-300 mb-2">Username</label>
+                <input type="text" id="userInput" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500" placeholder="Masukkan username">
             </div>
             
-            <!-- Simulasi Minta Kode -->
-            <button onclick="mintaKode()" class="w-full bg-gray-700 hover:bg-gray-600 text-white p-2 rounded mb-4 text-sm">Kirim Kode Verifikasi ke Email</button>
-            
-            <div class="mb-6 hidden" id="kodeArea">
-                <label class="block text-gray-300 mb-2">Kode Verifikasi</label>
-                <input type="text" id="kodeInput" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500" placeholder="123456">
+            <div class="mb-6">
+                <label class="block text-gray-300 mb-2">Password</label>
+                <input type="password" id="passInput" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500" placeholder="Masukkan password">
             </div>
 
-            <button onclick="prosesLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded transition">
+            <button onclick="handleAuth()" id="btnAuth" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded transition">
                 MASUK
             </button>
+            
+            <p class="text-center text-sm text-gray-400 mt-4">
+                <span id="authSwitchText">Belum punya akun?</span> 
+                <button onclick="switchAuthMode()" id="btnSwitch" class="text-blue-400 underline ml-1 focus:outline-none">Daftar</button>
+            </p>
         </div>
     </div>
 
-    <!-- ================= HALAMAN UTAMA (DASHBOARD) ================= -->
     <div id="dashboardPage" class="hidden">
-        <!-- Navbar -->
         <nav class="bg-gray-800 p-4 shadow-lg flex justify-between items-center">
             <h1 class="text-xl font-bold text-blue-400">MyCloud</h1>
-            <div class="flex flex-col items-center cursor-pointer">
-                <div id="profile-pic" class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-lg font-bold">U</div>
-                <span id="userNameDisplay" class="text-sm mt-1 text-gray-300">User</span>
+            <div class="flex items-center space-x-3">
+                <div class="flex flex-col items-end">
+                    <span id="userNameDisplay" class="text-sm font-bold text-gray-200">User</span>
+                    <button onclick="logout()" class="text-xs text-red-400 hover:underline">Keluar</button>
+                </div>
+                <label for="avatarInput" class="cursor-pointer relative group">
+                    <div id="profile-pic" class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-lg font-bold overflow-hidden border-2 border-blue-400">
+                        U
+                    </div>
+                    <input type="file" id="avatarInput" accept="image/*" class="hidden" onchange="changeAvatar(this)">
+                </label>
             </div>
         </nav>
 
         <div class="max-w-4xl mx-auto mt-8 p-4">
-            <!-- Navigasi Utama -->
             <div class="flex space-x-4 border-b border-gray-700 pb-2 mb-6 overflow-x-auto">
-                <button onclick="openTab('upload')" class="text-blue-400 font-semibold hover:text-blue-300 transition whitespace-nowrap">Upload File</button>
-                <button onclick="openTab('download')" class="text-green-400 font-semibold hover:text-green-300 transition whitespace-nowrap">Download</button>
-                <button onclick="openTab('myfiles')" class="text-yellow-400 font-semibold hover:text-yellow-300 transition whitespace-nowrap">File Saya (0/500MB)</button>
+                <button onclick="openTab('upload')" id="tabBtn-upload" class="text-blue-400 font-semibold pb-2 border-b-2 border-blue-400 whitespace-nowrap">Upload File</button>
+                <button onclick="openTab('download')" id="tabBtn-download" class="text-gray-400 font-semibold pb-2 whitespace-nowrap hover:text-green-400">Download</button>
+                <button onclick="openTab('myfiles')" id="tabBtn-myfiles" class="text-gray-400 font-semibold pb-2 whitespace-nowrap hover:text-yellow-400">File Saya (<span id="quotaDisplay">0</span>/500MB)</button>
             </div>
 
-            <!-- TAB UPLOAD -->
             <div id="upload" class="tab-content active bg-gray-800 p-6 rounded-lg shadow-md">
                 <h2 class="text-2xl mb-4 font-bold">Upload File</h2>
-                <p class="text-gray-400 text-sm mb-4">Maksimal file 5MB.</p>
+                <p class="text-gray-400 text-sm mb-4">Maksimal file 5MB per file. Kuota akun 500MB.</p>
                 
-                <label class="block mb-2">Pilih Kategori:</label>
+                <div id="uploadAlert" class="mb-4 text-sm hidden p-2 rounded"></div>
+
+                <label class="block mb-2">Pilih Kategori Tujuan:</label>
                 <select id="kategori" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mb-4 focus:outline-none focus:border-blue-500">
                     <option value="config">Config</option>
                     <option value="foto">Foto</option>
@@ -69,153 +77,359 @@
                     <option value="document">Document</option>
                 </select>
 
-                <input type="file" id="fileInput" class="hidden">
-                <button onclick="document.getElementById('fileInput').click()" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded font-bold w-full mb-4">
-                    PILIH FILE...
+                <input type="file" id="fileInput" class="hidden" onchange="updateFileLabel()">
+                <button onclick="document.getElementById('fileInput').click()" id="fileLabelBtn" class="border-2 border-dashed border-gray-600 hover:border-blue-500 p-6 rounded text-center w-full mb-4 block text-gray-400">
+                    Klik untuk Pilih File...
                 </button>
                 
-                <button onclick="simulateUpload()" class="border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white px-4 py-2 rounded w-full transition">
+                <button onclick="startUpload()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-3 rounded w-full transition">
                     Mulai Upload
                 </button>
 
-                <!-- Animasi Loading (Tanpa Notif Pop-up) -->
                 <div id="loadingArea" class="mt-4 hidden">
-                    <p class="text-sm mb-1" id="uploadStatus">Mengunggah... 0%</p>
+                    <p class="text-sm mb-1 text-blue-400" id="uploadStatus">Mengunggah... 0%</p>
                     <div class="w-full bg-gray-700 rounded-full h-2.5">
-                        <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                        <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-100" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB DOWNLOAD -->
             <div id="download" class="tab-content bg-gray-800 p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl mb-4 font-bold border-b border-gray-700 pb-2">Kategori Download</h2>
+                <h2 class="text-2xl mb-4 font-bold border-b border-gray-700 pb-2">DOWNLOAD</h2>
                 
-                <!-- Tombol Kategori -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-6">
-                    <button onclick="openDlTab('dl-config')" class="bg-gray-700 hover:bg-gray-600 p-4 rounded-lg text-left flex justify-between items-center focus:ring-2 focus:ring-blue-500">
-                        <span class="font-bold text-lg">⚙️ Config</span>
-                    </button>
-                    <button onclick="openDlTab('dl-foto')" class="bg-gray-700 hover:bg-gray-600 p-4 rounded-lg text-left flex justify-between items-center focus:ring-2 focus:ring-blue-500">
-                        <span class="font-bold text-lg">🖼️ Foto</span>
-                    </button>
-                    <button onclick="openDlTab('dl-script')" class="bg-gray-700 hover:bg-gray-600 p-4 rounded-lg text-left flex justify-between items-center focus:ring-2 focus:ring-blue-500">
-                        <span class="font-bold text-lg">📜 Script</span>
-                    </button>
-                    <button onclick="openDlTab('dl-doc')" class="bg-gray-700 hover:bg-gray-600 p-4 rounded-lg text-left flex justify-between items-center focus:ring-2 focus:ring-blue-500">
-                        <span class="font-bold text-lg">📄 Document</span>
-                    </button>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4 mb-6">
+                    <button onclick="openDlTab('dl-config')" id="dlBtn-dl-config" class="bg-blue-600 p-3 rounded font-bold text-center text-sm">Config</button>
+                    <button onclick="openDlTab('dl-foto')" id="dlBtn-dl-foto" class="bg-gray-700 p-3 rounded font-bold text-center text-sm hover:bg-gray-600">Foto</button>
+                    <button onclick="openDlTab('dl-script')" id="dlBtn-dl-script" class="bg-gray-700 p-3 rounded font-bold text-center text-sm hover:bg-gray-600">Script</button>
+                    <button onclick="openDlTab('dl-doc')" id="dlBtn-dl-doc" class="bg-gray-700 p-3 rounded font-bold text-center text-sm hover:bg-gray-600">Document</button>
                 </div>
 
-                <!-- Isi Sub-Tab Download -->
                 <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
-                    <div id="dl-config" class="dl-tab active">
-                        <h3 class="text-lg font-bold text-blue-400 mb-2">Daftar Config</h3>
-                        <p class="text-sm text-gray-400">Belum ada config yang diupload.</p>
-                    </div>
-                    <div id="dl-foto" class="dl-tab">
-                        <h3 class="text-lg font-bold text-blue-400 mb-2">Daftar Foto</h3>
-                        <p class="text-sm text-gray-400">Belum ada foto yang diupload.</p>
-                    </div>
-                    <div id="dl-script" class="dl-tab">
-                        <h3 class="text-lg font-bold text-blue-400 mb-2">Daftar Script</h3>
-                        <p class="text-sm text-gray-400">Belum ada script yang diupload.</p>
-                    </div>
-                    <div id="dl-doc" class="dl-tab">
-                        <h3 class="text-lg font-bold text-blue-400 mb-2">Daftar Document</h3>
-                        <p class="text-sm text-gray-400">Belum ada dokumen yang diupload.</p>
-                    </div>
+                    <div id="dl-config" class="dl-tab active"><ul class="divide-y divide-gray-800" id="list-config"></ul></div>
+                    <div id="dl-foto" class="dl-tab"><ul class="divide-y divide-gray-800" id="list-foto"></ul></div>
+                    <div id="dl-script" class="dl-tab"><ul class="divide-y divide-gray-800" id="list-script"></ul></div>
+                    <div id="dl-doc" class="dl-tab"><ul class="divide-y divide-gray-800" id="list-doc"></ul></div>
                 </div>
             </div>
 
-            <!-- TAB FILE SAYA -->
             <div id="myfiles" class="tab-content bg-gray-800 p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl mb-4 font-bold text-red-400">Penyimpanan Anda</h2>
-                <p class="text-gray-300 mb-4">Total: 0 MB / 500 MB</p>
-                <div class="p-4 bg-gray-900 rounded border border-gray-700 text-center text-gray-400">
-                    Belum ada file.
+                <div id="quotaWarning" class="hidden bg-red-900/50 border border-red-500 text-red-200 p-4 rounded mb-4">
+                    <h3 class="font-bold">⚠️ Peringatan Kuota Hampir Penuh!</h3>
+                    <p class="text-sm">Penyimpanan Anda hampir atau telah mencapai batas maksimal 500MB. Silakan hapus file-file lama Anda di bawah ini.</p>
                 </div>
+                <h2 class="text-xl mb-4 font-bold">Semua File Saya</h2>
+                <ul class="divide-y divide-gray-700" id="myFilesList"></ul>
             </div>
         </div>
     </div>
 
     <script>
-        // Logika Login Sederhana (Hanya Visual)
-        function mintaKode() {
-            let email = document.getElementById('emailInput').value;
-            if(!email) return;
-            document.getElementById('kodeArea').classList.remove('hidden');
-        }
+        let isLoginMode = true;
+        let currentUser = null;
+        let db = null;
+        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+        const MAX_TOTAL_SIZE = 500 * 1024 * 1024; // 500MB
 
-        function prosesLogin() {
-            let email = document.getElementById('emailInput').value;
-            if(!email) return;
-            
-            // Mengambil huruf pertama email untuk foto profil
-            let inisial = email.charAt(0).toUpperCase();
-            let namaAkun = email.split('@')[0];
-            
-            document.getElementById('profile-pic').innerText = inisial;
-            document.getElementById('userNameDisplay').innerText = namaAkun;
-
-            // Sembunyikan halaman login, tampilkan dashboard
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('dashboardPage').classList.remove('hidden');
-        }
-
-        // Logika Pindah Tab Utama
-        function openTab(tabName) {
-            let contents = document.getElementsByClassName("tab-content");
-            for (let i = 0; i < contents.length; i++) {
-                contents[i].classList.remove("active");
+        // 1. INISIALISASI DATABASE INTERNAL BROWSER (IndexedDB untuk File Besar)
+        const request = indexedDB.open("MyCloudDB", 1);
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains("files")) {
+                db.createObjectStore("files", { keyPath: "id", autoIncrement: true });
             }
-            document.getElementById(tabName).classList.add("active");
-        }
+        };
+        request.onsuccess = (e) => { db = e.target.result; checkSession(); };
 
-        // Logika Pindah Sub-Tab Download
-        function openDlTab(tabName) {
-            let contents = document.getElementsByClassName("dl-tab");
-            for (let i = 0; i < contents.length; i++) {
-                contents[i].classList.remove("active");
+        function checkSession() {
+            const session = localStorage.getItem("cloud_session");
+            if(session) {
+                currentUser = session;
+                showDashboard();
             }
-            document.getElementById(tabName).classList.add("active");
         }
 
-        // Simulasi Upload (Tanpa Pop-up Jelek)
-        function simulateUpload() {
-            let fileInput = document.getElementById('fileInput');
-            let uploadStatus = document.getElementById('uploadStatus');
+        // 2. LOGIKA AUTH (LOGIN & DAFTAR)
+        function switchAuthMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById("authTitle").innerText = isLoginMode ? "Login MyCloud" : "Daftar Akun Baru";
+            document.getElementById("btnAuth").innerText = isLoginMode ? "MASUK" : "DAFTAR REKENING";
+            document.getElementById("authSwitchText").innerText = isLoginMode ? "Belum punya akun?" : "Sudah punya akun?";
+            document.getElementById("btnSwitch").innerText = isLoginMode ? "Daftar" : "Login";
+        }
 
-            if (fileInput.files.length === 0) {
-                uploadStatus.innerText = "⚠️ Pilih file terlebih dahulu!";
-                uploadStatus.className = "text-sm mb-1 text-red-400";
-                document.getElementById('loadingArea').classList.remove('hidden');
+        function handleAuth() {
+            const user = document.getElementById("userInput").value.trim();
+            const pass = document.getElementById("passInput").value.trim();
+            const alertBox = document.getElementById("authAlert");
+
+            if(!user || !pass) {
+                showAlert(alertBox, "Username dan Password wajib diisi!", "bg-red-500");
                 return;
             }
 
-            let loadingArea = document.getElementById('loadingArea');
-            let progressBar = document.getElementById('progressBar');
-            
-            uploadStatus.className = "text-sm mb-1 text-white"; // reset warna
-            loadingArea.classList.remove('hidden');
-            let width = 0;
-            
-            let interval = setInterval(() => {
-                if (width >= 100) {
-                    clearInterval(interval);
-                    // PENGGANTI ALERT: Teks berubah warna hijau di dalam halaman
-                    uploadStatus.innerText = "✅ File berhasil diupload ke kategori: " + document.getElementById('kategori').value;
-                    uploadStatus.className = "text-sm mb-1 text-green-400 font-bold";
-                    
-                    // Reset input file
-                    fileInput.value = "";
+            if(isLoginMode) {
+                const storedPass = localStorage.getItem("user_" + user);
+                if(storedPass && storedPass === pass) {
+                    currentUser = user;
+                    localStorage.setItem("cloud_session", user);
+                    showDashboard();
                 } else {
-                    width += Math.floor(Math.random() * 15) + 5; 
-                    if (width > 100) width = 100;
-                    progressBar.style.width = width + '%';
-                    uploadStatus.innerText = `Mengunggah... ${width}%`;
+                    showAlert(alertBox, "Username atau Password salah!", "bg-red-500");
                 }
-            }, 300);
+            } else {
+                if(localStorage.getItem("user_" + user)) {
+                    showAlert(alertBox, "Username sudah terdaftar!", "bg-red-500");
+                } else {
+                    localStorage.setItem("user_" + user, pass);
+                    showAlert(alertBox, "Pendaftaran berhasil! Silakan login.", "bg-green-500");
+                    switchAuthMode();
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("cloud_session");
+            location.reload();
+        }
+
+        function showDashboard() {
+            document.getElementById("authPage").classList.add("hidden");
+            document.getElementById("dashboardPage").classList.remove("remove");
+            document.getElementById("dashboardPage").style.display = "block";
+            document.getElementById("userNameDisplay").innerText = currentUser;
+            
+            // Set Avatar awal berupa inisial huruf besar
+            const savedAvatar = localStorage.getItem("avatar_" + currentUser);
+            const picBox = document.getElementById("profile-pic");
+            if(savedAvatar) {
+                picBox.innerHTML = `<img src="${savedAvatar}" class="w-full h-full object-cover">`;
+            } else {
+                picBox.innerText = currentUser.charAt(0).toUpperCase();
+            }
+
+            loadFiles();
+        }
+
+        function changeAvatar(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    localStorage.setItem("avatar_" + currentUser, e.target.result);
+                    document.getElementById("profile-pic").innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // 3. LOGIKA NAVIGASI TAB
+        function openTab(tabName) {
+            const contents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < contents.length; i++) contents[i].classList.remove("active");
+            document.getElementById(tabName).classList.add("active");
+
+            const tabs = ['upload', 'download', 'myfiles'];
+            tabs.forEach(t => {
+                const btn = document.getElementById("tabBtn-" + t);
+                if(t === tabName) {
+                    btn.className = "text-blue-400 font-semibold pb-2 border-b-2 border-blue-400 whitespace-nowrap";
+                } else {
+                    btn.className = "text-gray-400 font-semibold pb-2 whitespace-nowrap hover:text-white";
+                }
+            });
+        }
+
+        function openDlTab(dlTabName) {
+            const contents = document.getElementsByClassName("dl-tab");
+            for (let i = 0; i < contents.length; i++) contents[i].classList.remove("active");
+            document.getElementById(dlTabName).classList.add("active");
+
+            const dlTabs = ['dl-config', 'dl-foto', 'dl-script', 'dl-doc'];
+            dlTabs.forEach(t => {
+                const btn = document.getElementById("dlBtn-" + t);
+                if(t === dlTabName) {
+                    btn.classList.replace("bg-gray-700", "bg-blue-600");
+                } else {
+                    btn.classList.replace("bg-blue-600", "bg-gray-700");
+                }
+            });
+        }
+
+        function updateFileLabel() {
+            const input = document.getElementById("fileInput");
+            if(input.files.length > 0) {
+                document.getElementById("fileLabelBtn").innerText = "File Terpilih: " + input.files[0].name;
+                document.getElementById("fileLabelBtn").classList.replace("text-gray-400", "text-blue-400");
+            }
+        }
+
+        // 4. LOGIKA REAL UPLOAD & HITUNG KUOTA
+        function startUpload() {
+            const fileInput = document.getElementById("fileInput");
+            const alertBox = document.getElementById("uploadAlert");
+            const kategori = document.getElementById("kategori").value;
+
+            if(fileInput.files.length === 0) {
+                showAlert(alertBox, "Pilih file terlebih dahulu!", "bg-red-500");
+                return;
+            }
+
+            const file = fileInput.files[0];
+
+            if(file.size > MAX_FILE_SIZE) {
+                showAlert(alertBox, "Gagal! Ukuran satu file maksimal 5MB.", "bg-red-500");
+                return;
+            }
+
+            // Hitung total kuota dulu
+            getTotalStorageUsed((totalUsed) => {
+                if(totalUsed + file.size > MAX_TOTAL_SIZE) {
+                    showAlert(alertBox, "Gagal! Upload dibatalkan karena kuota akun 500MB penuh. Hapus file lama di menu 'File Saya'.", "bg-red-500");
+                    document.getElementById("quotaWarning").classList.remove("hidden");
+                    return;
+                }
+
+                // Proses pembacaan file & animasi loading
+                const loadingArea = document.getElementById("loadingArea");
+                const progressBar = document.getElementById("progressBar");
+                const uploadStatus = document.getElementById("uploadStatus");
+
+                loadingArea.classList.remove("hidden");
+                
+                let progress = 0;
+                // Simulasi kecepatan baca data animasi
+                const interval = setInterval(() => {
+                    progress += Math.floor(Math.random() * 20) + 10;
+                    if(progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const fileData = {
+                                user: currentUser,
+                                name: file.name,
+                                type: kategori,
+                                size: file.size,
+                                content: e.target.result // Base64 data file nyata
+                            };
+
+                            const transaction = db.transaction(["files"], "readwrite");
+                            transaction.objectStore("files").add(fileData);
+                            transaction.oncomplete = () => {
+                                uploadStatus.innerText = "✅ Berhasil diunggah!";
+                                setTimeout(() => {
+                                    loadingArea.classList.add("hidden");
+                                    progressBar.style.width = "0%";
+                                    document.getElementById("fileInput").value = "";
+                                    document.getElementById("fileLabelBtn").innerText = "Klik untuk Pilih File...";
+                                    loadFiles();
+                                }, 1500);
+                            };
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                    progressBar.style.width = progress + "%";
+                    uploadStatus.innerText = `Mengunggah... ${progress}%`;
+                }, 150);
+            });
+        }
+
+        // 5. AMBIL DATA & ATUR DOWNLOAD TAB NYATA
+        function loadFiles() {
+            if(!db) return;
+            const tx = db.transaction("files", "readonly");
+            const store = tx.objectStore("files");
+            const request = store.openCursor();
+
+            // Reset tampilan list
+            const kats = ['config', 'foto', 'script', 'doc'];
+            kats.forEach(k => document.getElementById("list-" + k).innerHTML = "");
+            document.getElementById("myFilesList").innerHTML = "";
+
+            let totalSize = 0;
+
+            request.onsuccess = (e) => {
+                const cursor = e.target.result;
+                if(cursor) {
+                    const item = cursor.value;
+                    if(item.user === currentUser) {
+                        totalSize += item.size;
+
+                        // Tambah ke tab Download kategori yang pas
+                        let targetListId = "list-doc";
+                        if(item.type === "config") targetListId = "list-config";
+                        if(item.type === "foto") targetListId = "list-foto";
+                        if(item.type === "script") targetListId = "list-script";
+
+                        const liDownload = document.createElement("li");
+                        liDownload.className = "py-3 flex justify-between items-center text-sm";
+                        liDownload.innerHTML = `
+                            <span class="truncate max-w-[200px]">${item.name}</span>
+                            <a href="${item.content}" download="${item.name}" class="bg-green-600 px-3 py-1 rounded text-xs font-bold text-white hover:bg-green-500">DOWNLOAD</a>
+                        `;
+                        document.getElementById(targetListId).appendChild(liDownload);
+
+                        // Tambah ke tab File Saya (Bisa Hapus)
+                        const liMine = document.createElement("li");
+                        liMine.className = "py-3 flex justify-between items-center text-sm";
+                        liMine.innerHTML = `
+                            <div class="flex flex-col">
+                                <span class="font-semibold">${item.name}</span>
+                                <span class="text-xs text-gray-400">Kategori: ${item.type.toUpperCase()} | ${(item.size/(1024*1024)).toFixed(2)} MB</span>
+                            </div>
+                            <button onclick="deleteFile(${item.id})" class="text-red-500 hover:text-red-400 font-bold text-xs">Hapus</button>
+                        `;
+                        document.getElementById("myFilesList").appendChild(liMine);
+                    }
+                    cursor.continue();
+                } else {
+                    // Selesai hitung kuota
+                    const mbUsed = (totalSize / (1024 * 1024)).toFixed(1);
+                    document.getElementById("quotaDisplay").innerText = mbUsed + "MB";
+                    
+                    if(totalSize >= MAX_TOTAL_SIZE * 0.9) {
+                        document.getElementById("quotaWarning").classList.remove("hidden");
+                    } else {
+                        document.getElementById("quotaWarning").classList.add("hidden");
+                    }
+
+                    // Teks jika kosong
+                    kats.forEach(k => {
+                        const el = document.getElementById("list-" + k);
+                        if(el.children.length === 0) el.innerHTML = `<p class="text-sm text-gray-500 text-center py-2">Kosong</p>`;
+                    });
+                    if(document.getElementById("myFilesList").children.length === 0) {
+                        document.getElementById("myFilesList").innerHTML = `<p class="text-sm text-gray-500 text-center py-4">Belum ada file diupload.</p>`;
+                    }
+                }
+            };
+        }
+
+        function deleteFile(id) {
+            const tx = db.transaction("files", "readwrite");
+            tx.objectStore("files").delete(id);
+            tx.oncomplete = () => { loadFiles(); };
+        }
+
+        function getTotalStorageUsed(callback) {
+            const tx = db.transaction("files", "readonly");
+            const store = tx.objectStore("files");
+            let total = 0;
+            store.openCursor().onsuccess = (e) => {
+                const cursor = e.target.result;
+                if(cursor) {
+                    if(cursor.value.user === currentUser) total += cursor.value.size;
+                    cursor.continue();
+                } else {
+                    callback(total);
+                }
+            };
+        }
+
+        function showAlert(element, message, bgColor) {
+            element.innerText = message;
+            element.className = `mb-4 text-sm text-center p-2 rounded ${bgColor} text-white font-bold block`;
+            setTimeout(() => { element.className = "hidden"; }, 4000);
         }
     </script>
 </body>
